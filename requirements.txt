@@ -1,0 +1,48 @@
+# ============================================================
+# SUE — Semantic Universe Explorer
+# ============================================================
+
+# Core
+numpy>=1.26
+pandas>=2.2
+python-dotenv>=1.0
+requests>=2.31
+tqdm>=4.66
+
+# Jupyter / notebook support
+ipykernel>=6.29
+
+# Embeddings
+sentence-transformers>=2.6
+torch>=2.2
+
+# Vector search (fallback)
+faiss-cpu>=1.8
+
+# Visualization (Streamlit explorer)
+streamlit>=1.33
+plotly>=5.20
+scikit-learn>=1.4
+
+# PDF handling
+pypdf>=4.0
+pdf2image>=1.17
+Pillow>=10.2
+
+# Providers
+openai>=1.30
+anthropic>=0.25
+
+# To run the observatory demo ntoebook
+python-docx
+python-pptx
+openpyxl
+pypdf
+sentence-transformers
+faiss-cpu
+matplotlib
+scikit-learn
+python-dotenv
+openai
+anthropic
+pymilvus
