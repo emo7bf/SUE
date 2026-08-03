@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SUE — walk-through &amp; storytelling examples</title>
+<style>
+:root { --bg:#f7f7f8; --panel:#fff; --border:#d9d9de; --text:#1e1e22;
+        --muted:#55575c; --accent:#a45a1e; --accent2:#4a6a8a;
+        --highlight:#fff5e0; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text);
+       font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+       font-size:15px; line-height:1.55; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 32px 24px 60px; }
+header a.back { color: var(--accent2); text-decoration: none;
+                border-bottom: 1px dotted var(--accent2); }
+h1 { font-size: 28px; margin: 8px 0 4px; }
+h1 .accent { color: var(--accent); }
+h2 { font-size: 20px; color: var(--accent); margin: 36px 0 8px;
+     border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+h3 { font-size: 16px; margin: 20px 0 4px; color: var(--accent2); }
+p { margin: 8px 0; }
+.subtle { color: var(--muted); font-size: 13.5px; }
+.card { background: var(--panel); border: 1px solid var(--border);
+        border-radius: 8px; padding: 14px 18px; margin: 14px 0; }
+.card h3 { margin-top: 0; }
+.twin { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.twin .side { background: var(--highlight); border-left: 3px solid var(--accent);
+              padding: 10px 12px; border-radius: 4px; font-size: 14px;
+              white-space: pre-wrap; }
+.twin .side .who { font-weight: bold; color: var(--accent2);
+                    font-size: 12.5px; margin-bottom: 6px;
+                    text-transform: uppercase; letter-spacing: 0.05em; }
+.snippet { background: var(--highlight); border-left: 3px solid var(--accent);
+           padding: 10px 12px; border-radius: 4px; font-size: 14px;
+           white-space: pre-wrap; margin: 8px 0; }
+.meta { color: var(--muted); font-size: 12.5px; margin: 4px 0; }
+dl.modes dt { font-weight: bold; color: var(--accent2); margin-top: 12px; }
+dl.modes dd { margin: 2px 0 8px 0; }
+@media (max-width: 720px) { .twin { grid-template-columns: 1fr; } }
+</style>
+</head><body>
+<div class="wrap">
+<header><a class="back" href="semantic_universe_explorer.html">← back to the interactive viewer</a>
+<h1>SUE — <span class="accent">walk-through</span> &amp; storytelling examples</h1>
+<p class="subtle">A slower, static companion to the interactive Semantic
+Universe Explorer. Five direct competitors in
+semiconductor-manufacturing equipment (Applied Materials, ASML, KLA, Lam Research, and TEL) all publish
+Global Impact / ESG reports every year. This page is the guided tour of
+what the geometry of their reports actually looks like.</p></header>
+
+<h2>What each color mode means</h2>
+<dl class="modes">
+<dt>Company</dt>
+<dd>Every dot colored by which of the five firms authored the underlying
+    passage. Useful for eyeballing whether any single firm produces a
+    visually distinct region of the space.</dd>
+<dt>Prose ↔ tabular score</dt>
+<dd>A number for each chunk from “very narrative” (blue) through
+    zero (mixed) to “very tabular” (red). Computed as the
+    projection onto the axis that connects the average narrative-chunk
+    location to the average tabular-chunk location. The direction that
+    the fixed classifier <em>would</em> read as “numbers vs.
+    words.”</dd>
+<dt>Digit density (raw)</dt>
+<dd>The unlearned control: what percentage of the chunk’s characters
+    are numerals. Purples = more numbers. Whenever the prose↔tabular
+    score and digit density paint the same picture, that’s your sign
+    that the encoder’s “semantics” on this axis is really
+    just numerals.</dd>
+<dt>Cross-corpus outlierness</dt>
+<dd>For every chunk, how far is it from the average of the OTHER four
+    competitors’ embeddings? Red = far. This is the answer to
+    “which passages of firm X are doing something the other four
+    aren’t?”</dd>
+<dt>In-doc typicality</dt>
+<dd>For every chunk, how far is it from the center of its own document?
+    Yellow = close to the doc’s center of gravity, viridis-blue =
+    far. Useful for spotting chunks that read very unlike the rest of
+    their own report.</dd>
+<dt>Unsupervised cluster (GMM)</dt>
+<dd>A 2-component Gaussian mixture fit on the top-20 principal components,
+    without ever being told about prose or tables. If it recovers the
+    same partition anyway, that’s evidence the split is real.</dd>
+</dl>
+
+<h2>Two firms, one sentence: cross-competitor near-twins</h2>
+<p>These are the most compelling examples in the corpus for a
+non-technical reader. Two direct competitors, different reports, and
+the sentence encoder puts their passages almost on top of each other.
+The <em>content</em> is nearly identical; only the letterhead is
+different.</p>
+
+<div class="card">
+  <h3>Near-twin #1: Lam Research ↔ KLA</h3>
+  <p class="subtle">Cosine similarity in the 384-D embedding space: 0.850.
+     Two different firms, different reports, but the encoder places these two
+     passages almost on top of each other.</p>
+  <div class="twin">
+    <div class="side"><div class="who">Lam Research</div>re an ethical and responsible business 
+ecosystem focused on human rights and 
+the environment.
+OUR COMMUNITIES
+Be a responsible corporate citizen with 
+programs focusing on transformative learning, 
+resilient communities, and inclusive societies.
+Our ESG mission
+We elevate human prosperity and 
+protect the environment in our 
+operations, supply chain, and the 
+products we create.
+Learn more about our ESG strategy
+10
+INTRODUCTION BUSINESS AND GOVERNANCE PRODUCT INNOVATION SUSTAINABLE OPERATIONS OUR WORKPLACE RESPONSIBLE SUPPLY CHAIN OUR COMMUNITIES RESOURCES2022 ESG Report
+ESG governance at Lam
+OVERSIGHT
+Lam Research Board of Directors
+Overall ESG oversight
+Nominating and 
+Governance Committee
+ESG priorities
+Compensation and Human 
+Resources Committee
+Workforce-related issues
+Audit 
+Committee
+Ethics and compliance and 
+information security
+MANAGEMENT
+ESG Executive Steering Committee
+Guid</div>
+    <div class="side"><div class="who">KLA</div>NVIRONMENT
+GOVERNANCE 
+AND ETHICS
+Corporate Governance 
+and ESG 
+Business Ethics 
+and Compliance 
+Keep Looking Ahead
+APPENDIX
+ESG Governance at KLAPrioritizing ESG 
+Board of Directors
+Nominating and 
+Governance 
+Committee
+ESG Steering Committee
+Advancing 
+Leadership
+Executive Team
+Chief Executive Officer
+Global ESG Leader
+ESG Team
+Advancing 
+Opportunity
+Advancing 
+Innovation
+Advancing 
+Stewardship
+Health, 
+Safety and 
+Well-being
+Product 
+Stewardship 
+and Innovation
+Climate and 
+Energy
+Inclusion and 
+Diversity
+Cybersecurity 
+and IP 
+Protection
+Materials 
+and WasteBusiness 
+Ethics and 
+Compliance
+Corporate 
+Governance 
+and ESG
+Community 
+Engagement
+Human/
+Labor Rights
+Responsible 
+Sourcing
+Water 
+Management
+Audit 
+Committee
+Compensation 
+and Talent 
+Committee
+KLA’s ESG Steering Committee oversees the implementation 
+of programs and strategies designed to achieve our ESG goals. 
+Chaired by</div>
+  </div>
+</div>
+
+
+<div class="card">
+  <h3>Near-twin #2: Applied Materials ↔ KLA</h3>
+  <p class="subtle">Cosine similarity in the 384-D embedding space: 0.824.
+     Two different firms, different reports, but the encoder places these two
+     passages almost on top of each other.</p>
+  <div class="twin">
+    <div class="side"><div class="who">Applied Materials</div>logy and manufacturing 
+equipment R&amp;D
+* In 2020, Applied established bold 3x30 goals focused on reducing the equivalent energy consumption, 
+ chemical impact and fab footprint of our systems by 30% by the end of this decade.
+2024 Highlights
+41
+INTRODUCTION ENSURING TRUST EMPOWERING PEOPLE ENVIRONMENTAL PROGRESS ABOUT THIS REPORT DATA AND DISCLOSURES
+Goals and Progress
+Scope 1, 2 and 3 Goals
+Goal Status* Progress ProgressUN SDG
+100% of electricity at Applied 
+globally comes from renewable 
+sources by 2030
+73% of electricity at Applied 
+globally, including 100% in 
+the U.S., came from renewable 
+sources
+50% reduction in Scope 1 and Scope 
+2 (market-based) emissions by 2030 
+from 2019 baseline
+Scope 1 and 2 (market-based) 
+emissions are 4% above our 
+2019 baseline levels
+55% reduction per million USD of value 
+added of Scope 3 Category 11 emissions 
+by 2030 from 2019 baseline for 
+semicondu</div>
+    <div class="side"><div class="who">KLA</div>urchased Grid Electricity (MWh) 197,187 198,949
+Renewable Energy (%) 52% 55%
+50
+Global Impact Report 
+2022
+GOVERNANCE 
+&amp; ETHICS
+APPENDIX
+INTRODUCTION
+PEOPLE
+PRODUCTS &amp; 
+SUPPLY CHAIN
+ENVIRONMENT
+Climate &amp; Energy
+Materials &amp; Waste
+ Water Management
+Environmental 
+Management
+Keep Looking Ahead 
+Scope 3 Emissions Emissions Intensity
+Goal: We have developed a quantifiable Scope 3 emissions 
+reduction target which is being submitted alongside our existing 
+Scope 1 and 2 emissions goals for review by the Science Based 
+Target Initiative (SBTi), and which we plan to publish after SBTi 
+validation.
+KLA Scope 3 GHG Emissions
+ 2021 2022
+Total Scope 3 Emissions (Million MT CO2e) 3.85 4.27
+Use of Sold Products Emissions (%) 79% 75%
+Purchased Goods and Services Emissions (%) 17% 18%
+Emissions From All Other Categories (%) 4% 6%1
+In 2022, the increase in our Scope 3 emissions was largely due to an incr</div>
+  </div>
+</div>
+
+
+<div class="card">
+  <h3>Near-twin #3: TEL ↔ ASML</h3>
+  <p class="subtle">Cosine similarity in the 384-D embedding space: 0.822.
+     Two different firms, different reports, but the encoder places these two
+     passages almost on top of each other.</p>
+  <div class="twin">
+    <div class="side"><div class="who">TEL</div>balance improved in the second half of 2023. 
+Growth of the AI server market and increasing expectations for 
+on-device AI as well led to rediscovery of growth potential in 
+the semiconductor industry.
+Going forward, further growth in the semiconductor and 
+semiconductor production equipment markets is expected as 
+the range of AI-based applications expands.
+Further growth in the semiconductor and semiconductor 
+production equipment markets will be supported by 
+technological innovation in semiconductor devices. In logic, 
+DRAM and NAND devices, demand is expected to continue 
+increasing for improved transistor performance and greater 
+storage capacity through further scaling and higher multi-
+layering, as well as for lower manufacturing costs and lower 
+power consumption. We will utilize our broad product lineup 
+and maximize quality in each process, while also providing 
+customers with</div>
+    <div class="side"><div class="who">ASML</div>ever, the AI-
+led demand for computing power is 
+increasing faster than that supported by 
+Moore’s Law, which in turn gives rise to 
+power consumption and cost challenges. 
+Unleashing the full potential of AI will require 
+us to overcome these challenges – which, 
+from a semiconductor viewpoint, implies an 
+acceleration of the advanced Logic roadmap 
+as well as improved performance and energy 
+efficiency of the DRAM Memory architecture.
+Therefore, on balance, we anticipate a 
+steady pace of AI adoption in the coming 
+years, contributing toward our expectation 
+of overall worldwide semiconductor sales 
+crossing $1 trillion by 2030. In terms of end 
+markets, we see servers, data centers and 
+storage as the key initial beneficiary of this 
+emergence of AI, with associated 
+semiconductor sales for this end market 
+expected to exceed $350 billion by 2030.
+Transforming our business processes
+A</div>
+  </div>
+</div>
+
+
+<h2>Every curated example, in full</h2>
+
+<div class="card">
+  <h3>Applied Materials: most off-consensus passage</h3>
+  <p class="subtle">The paragraph in Applied Materials’s report that reads least like anything its four competitors wrote.</p>
+  <div class="meta">Applied Materials · 2024 Applied Materials Impact Report.pdf · chunk 84</div>
+  <div class="snippet">l webinars to help employees 
+learn more about their benefits and take steps 
+to improve their physical, emotional and 
+financial wellness.
+ 
+Some specific health and wellness 
+advancements in the U.S. include: 
+• Applied increased its contribution to Health 
+Savings Accounts by 50% in 2024, providing 
+single employees who elect employee-
+only coverage with a $375–$750 annual 
+contribution, and employees who elect 
+coverage with dependents a $750–$1,500 
+annual contribution. A Health Savings 
+Account can be used to pay for eligible health 
+care expenses.
+• The reimbursement limit for Applied’s Lifestyle 
+Account increased from 50% to 100% (up 
+to $500) in its second year of offering. The 
+Lifestyle Account benefit provides flexible 
+support to employees that can be used 
+toward a variety of eligible expenses that are 
+most relevant to the employee, such as gym 
+membership, cooking classe</div>
+</div>
+
+
+<div class="card">
+  <h3>ASML: most off-consensus passage</h3>
+  <p class="subtle">The paragraph in ASML’s report that reads least like anything its four competitors wrote.</p>
+  <div class="meta">ASML · 2024 Annual Report based on IFRS.pdf · chunk 70</div>
+  <div class="snippet">ation. During the R&amp;D phase, our 
+customers rely on computational lithography 
+to optimize the imaging conditions of our 
+lithography system. 
+In addition, they develop the recipes to 
+optimize reticle patterns to achieve the best 
+pattern fidelity, which will be applied to each 
+and every new reticle during high-volume 
+manufacturing to ensure robust, 
+manufacturable designs that deliver high 
+yields. Insights from computational 
+lithography solutions are also increasingly 
+used to guide metrology and inspection, 
+increasing throughput and enabling more 
+precise process monitoring and control in 
+high-volume manufacturing.
+Our computational lithography solutions are 
+based on accurate computer simulations of 
+the lithography system and process, 
+representing a wide variety of physical and 
+chemical effects. With these simulations, we 
+can predict how a designed pattern will 
+appear when</div>
+</div>
+
+
+<div class="card">
+  <h3>KLA: most off-consensus passage</h3>
+  <p class="subtle">The paragraph in KLA’s report that reads least like anything its four competitors wrote.</p>
+  <div class="meta">KLA · 2022 KLA_Global_Impact_Report.pdf · chunk 78</div>
+  <div class="snippet">families succeed. In 2022, 987 
+women in more than 50 countries across 
+Europe, Asia and Latin America received 
+loans totaling $33,250.
+Kenia is a 34-year-old mother of three from Rubenia, Nicaragua. From a 
+young age, she was already learning how to cook and prepare dishes 
+which led her to ultimately begin her own food stand. Beginning with fast 
+food, she branched out to serve various options as demand increased. 
+With the assistance of partner MiCredito, Kenia applied for a loan to 
+purchase basic grains, vegetables, chicken, meat, disposable plates, gas, 
+sweets and fizzy drinks. 
+Ingrid Elizabeth and her family live in Portoviejo, Ecuador where the 
+townspeople are dedicated to sustaining their own agriculture. Her family 
+farm produces bananas and cocoa while also harvesting and raising 
+chickens. While her husband is in charge of marketing the products in 
+the markets, Ingrid E</div>
+</div>
+
+
+<div class="card">
+  <h3>Lam Research: most off-consensus passage</h3>
+  <p class="subtle">The paragraph in Lam Research’s report that reads least like anything its four competitors wrote.</p>
+  <div class="meta">Lam Research · Lam-Research-2023-ESG-Report.pdf · chunk 214</div>
+  <div class="snippet">November and December, as the year winds down, Lam employees ramp up 
+their efforts to uplift their communities. In 2023, we continued our annual Deliver Joy 
+campaign with more than 100 volunteer events tailored to meet our communities’ 
+needs. It was a massive endeavor, with employees setting a record number of Deliver 
+Joy volunteer hours for the second consecutive year. Highlights included:
+• Cooking meals for more than 50 people at the Westbahnhoffnung Villach 
+nonprofit in Austria
+• Tying blankets for foster kids through Project Lemonade and hosting an onsite 
+blood drive in collaboration with the American Red Cross in Tualatin, Oregon
+• Building a custom, Barbie-themed playhouse for Habitat for Humanity in 
+Fremont, California
+• Collecting ~1,200 uniforms for disadvantaged students in India designed to 
+encourage physical activity and play
+• Wrapping gifts for foster children at</div>
+</div>
+
+
+<div class="card">
+  <h3>TEL: most off-consensus passage</h3>
+  <p class="subtle">The paragraph in TEL’s report that reads least like anything its four competitors wrote.</p>
+  <div class="meta">TEL · Tokyo Electron Limited (TEL) 2024 Integrated Report (SustainabilityReports.com).pdf · chunk 89</div>
+  <div class="snippet">l deposition on 3D structures. As 
+memory capacity increases, there is a need for increased data 
+transfer speeds. Enhanced performance of peripheral circuits is 
+essential to achieve this, but there is an issue with the thermal 
+process, used when molding memory cells, creating limitations 
+on performance and scaling. To resolve this, development 
+is underway to enable use of 3D integration technology in 
+mass production to manufacture and bond memory cells and 
+peripheral circuits on separate wafers, which will also enable 
+optimization of chip size. We are striving to further improve the 
+performance of our etch, ALD* and wafer bonding/debonding 
+equipment to meet these technological requirements.
+ DRAM
+In DRAM, technologies for forming high 
+aspect ratio1 capacitors and contacts are 
+becoming increasingly important, while 
+many of our deposition, etch and cleaning 
+systems are used f</div>
+</div>
+
+
+<div class="card">
+  <h3>The sector’s average sentence</h3>
+  <p class="subtle">So central that it could have come from any of the five reports. This is what “consensus” looks like.</p>
+  <div class="meta">Lam Research · Lam-Research-2023-ESG-Report.pdf · chunk 32</div>
+  <div class="snippet">o support a variety 
+of ESG-related practices, including enhancing human 
+rights due diligence and sustainability in our supply chain, 
+strengthening our culture of ethics and compliance, and 
+supporting effective environmental management. View 
+Responsible supply chain, Business and governance, and 
+Sustainable operations to learn more about each of the 
+above topics.
+Aligning our reporting 
+with industry-leading 
+frameworks
+We align our reporting and priority 
+ESG topics with the Global Reporting 
+Initiative’s (GRI) Universal Standards 
+and with the Sustainability Accounting 
+Standards Board (SASB) Standard for 
+the Technology and Communications 
+Sector: Semiconductor Industry. 
+View the Key Data and Frameworks 
+to reference our GRI and 
+SASB frameworks.
+ 
+ 
+2023 ESG Report 11INTRODUCTION PRODUCT INNOVATION SUSTAINABLE OPERATIONS OUR WORKPLACE RESPONSIBLE SUPPLY CHAIN OUR COMMUNITIES A</div>
+</div>
+
+
+<div class="card">
+  <h3>Applied Materials: most typical passage</h3>
+  <p class="subtle">The paragraph closest to the center of Applied Materials’s report. What their writing sounds like on an average page.</p>
+  <div class="meta">Applied Materials · 2024 Applied Materials Impact Report.pdf · chunk 0</div>
+  <div class="snippet">Impact Report 2024
+1
+Powering 
+Sustainable 
+Growth 
+IMPACT REPORT 2024
+INTRODUCTION ENSURING TRUST EMPOWERING PEOPLE ENVIRONMENTAL PROGRESS ABOUT THIS REPORT DATA AND DISCLOSURES
+2
+Table of Contents
+On the Cover
+The new Equipment and Process Innovation and 
+Commercialization (EPIC™) Center, the world’s 
+largest and most advanced facility for collaborative 
+semiconductor process technology and manufacturing 
+equipment research and development, is rising in the 
+heart of Silicon Valley. It is expected to commence 
+operations in 2026. Read more. (Cover image taken 
+May 2025.)
+Introduction 3
+Message from Our CEO 4
+2024 Highlights 5
+About Applied Materials 6
+Vision and Strategy 9
+Impact Materiality Assessment 10 
+Recognitions and Memberships 11
+Ensuring Trust 12
+2024 Highlights 13
+Corporate Governance 14
+Global Ethics and Compliance 16
+Cybersecurity and Data Protection 18
+Environmental, Healt</div>
+</div>
+
+
+<div class="card">
+  <h3>ASML: most typical passage</h3>
+  <p class="subtle">The paragraph closest to the center of ASML’s report. What their writing sounds like on an average page.</p>
+  <div class="meta">ASML · 2024 Annual Report based on IFRS.pdf · chunk 170</div>
+  <div class="snippet">eased slightly 
+compared to previous year. Gross margin 
+was positively impacted by growth in our 
+installed base business, partially offset by 
+the dilutive impact of the first High NA EUV 
+lithography system deliveries.
+ 
+STRATEGIC REPORT CORPORATE GOVERNANCE SUSTAINABILITY FINANCIALS ASML Annual Report 2024 51
+ 
+At a glance Q&amp;A with the CEO 2024 stories Our business Performance Risk Corporate conduct
+A year of transition and preparation, 
+ahead of the upturn to come
+Message from our Executive Vice President and 
+Chief Financial Officer
+Roger Dassen
+We delivered 
+on our 
+expectations 
+in spite of the 
+challenges.”
+Managing the cycles of our industry
+The semiconductor industry has always 
+been cyclical, with the peaks and troughs 
+driving a sharp focus on cost and cash 
+management in the short term while 
+preparing the ground for the growth 
+opportunities throughout the entire 
+ecosyste</div>
+</div>
+
+
+<div class="card">
+  <h3>KLA: most typical passage</h3>
+  <p class="subtle">The paragraph closest to the center of KLA’s report. What their writing sounds like on an average page.</p>
+  <div class="meta">KLA · 2022 KLA_Global_Impact_Report.pdf · chunk 83</div>
+  <div class="snippet">our employees receive more real-time training. KLA is 
+also working with outside experts to develop best-known practices and create original training content for safety 
+issues such as ergonomics and laser safety. Additionally, the global expansion of ISO 14001 and 45001 certification is 
+expected to begin rolling out across KLA’s seven main manufacturing locations in 2023.
+Global Impact Report 
+2022
+32
+INTRODUCTION
+PEOPLE
+PRODUCTS &amp; 
+SUPPLY CHAIN
+ENVIRONMENT
+GOVERNANCE 
+&amp; ETHICS
+APPENDIX
+PRODUCTS 
+&amp; SUPPLY CHAIN
+Our culture of innovation drives us to tackle complex 
+technical and sustainability challenges. With one foot 
+in the future, we develop tomorrow’s products, while 
+living up to our responsibilities today.
+KLA is a place where curiosity is celebrated, 
+thinking big is recognized and driving progress is 
+expected. We know that our greatest opportunity 
+to have a positive impact o</div>
+</div>
+
+
+<div class="card">
+  <h3>Lam Research: most typical passage</h3>
+  <p class="subtle">The paragraph closest to the center of Lam Research’s report. What their writing sounds like on an average page.</p>
+  <div class="meta">Lam Research · Lam-Research-2022-ESG-Report.pdf · chunk 19</div>
+  <div class="snippet">across our top-tier suppliers Annual
+• Engage with at least 50% of our top-tier suppliers on environmental sustainability opportunities Annual
+• Increase engagement with all suppliers on social and environmental topics through assessment, training, and capacity building Annual
+• 46.5% of suppliers measured by emissions will set SBTs5 Cumulative from baseline
+Community
+• Determine key targets for larger-scale impact aligned to a new strategic focus Annual
+• Implement measurement of outcomes for key program and large-scale grants Annual
+• Increase annual unique participation rate in all employee giving programs from 10% to 30% Cumulative from baseline
+• Increase employee volunteer hours by 33% from a 2019 baseline Cumulative from baseline
+As we progress in each of Lam’s ESG pillars, our goals keep us focused and accountable. In 2022, we 
+made important strides, including surpassing our wat</div>
+</div>
+
+
+<div class="card">
+  <h3>TEL: most typical passage</h3>
+  <p class="subtle">The paragraph closest to the center of TEL’s report. What their writing sounds like on an average page.</p>
+  <div class="meta">TEL · 2022 TEL Annual Report.pdf · chunk 50</div>
+  <div class="snippet">mer productivity/yield
+Management 
+Foundation
+■ Build a strong management foundation that 
+underpins our business activities
+■ Diversity and inclusion
+■ Career development
+■ Work-life balance
+■ Health and safety
+■ Governance
+■ Risk management
+■ Compliance
+■ Environmental contribution of products
+■ Environmental management
+■ Supply chain management
+TOKYO ELECTRON SUSTAINABILITY REPORT 2022
+10
+Customer ResponsivenessProduct Competitiveness Higher Productivity Management Foundation TEL FOR GOOD Data About Tokyo Electron Sustainability ManagementSustainability ManagementSustainability Management
+
+Annual Sustainability Goals and Results
+Fiscal Year 2022
+Material Issues Priority Themes Annual Sustainability Goals Results
+Product 
+Competitiveness Tackling technological innovation
+■ Ensure that 20% or more (three-year moving average) of all equipment models are new products for next-generation t</div>
+</div>
+
+
+<div class="card">
+  <h3>Near-twin: Lam Research ↔ KLA</h3>
+  <p class="subtle">Two firms saying nearly the same thing. Click to spotlight the twin passage inside KLA’s report.</p>
+  <div class="meta">Lam Research · Lam-Research-2022-ESG-Report.pdf · chunk 30</div>
+  <div class="snippet">re an ethical and responsible business 
+ecosystem focused on human rights and 
+the environment.
+OUR COMMUNITIES
+Be a responsible corporate citizen with 
+programs focusing on transformative learning, 
+resilient communities, and inclusive societies.
+Our ESG mission
+We elevate human prosperity and 
+protect the environment in our 
+operations, supply chain, and the 
+products we create.
+Learn more about our ESG strategy
+10
+INTRODUCTION BUSINESS AND GOVERNANCE PRODUCT INNOVATION SUSTAINABLE OPERATIONS OUR WORKPLACE RESPONSIBLE SUPPLY CHAIN OUR COMMUNITIES RESOURCES2022 ESG Report
+ESG governance at Lam
+OVERSIGHT
+Lam Research Board of Directors
+Overall ESG oversight
+Nominating and 
+Governance Committee
+ESG priorities
+Compensation and Human 
+Resources Committee
+Workforce-related issues
+Audit 
+Committee
+Ethics and compliance and 
+information security
+MANAGEMENT
+ESG Executive Steering Committee
+Guid</div>
+</div>
+
+
+<div class="card">
+  <h3>Most tabular passage</h3>
+  <p class="subtle">The densest wall of numbers in the whole corpus.</p>
+  <div class="meta">Applied Materials · 2024 Applied Materials Impact Report.pdf · chunk 190</div>
+  <div class="snippet">% 50% 51%
+Global renewable electricity rate % 73% 70% 69% 52% 38% 39%
+T otal energy MWh 660,699 623,693 597,500 560,776 525,292 527,125
+Energy intensity
+MWh of energy consumed per 
+employee 18.51 18.33 18.10 20.60 21.90 23.90
+MWh of energy consumed per million 
+dollars of revenue 24.31 23.50 23.20 24.30 30.50 36.10
+Water
+T otal water withdrawal9
+ 
+Thousand m3
+2,509 2,388 2,359 2,249 2,104 2,016
+City water purchased 2,501 2,387 2,221 2,149 2,088 1,990
+Groundwater 3.8 1.3 138 100 16 26
+T otal water consumption 553 535 443 424 418 404
+Domestic water10 463 439 363 364 340 327
+Irrigation 86 96 80 60 78 77
+Water withdrawal in water-stressed areas11 % 12% 12% 13% 12% 12% 13%
+Water withdrawal intensity 
+Thousand m3 water withdrawal per 
+employee 0.07 0.07 0.07 0.08 0.09 0.09
+Thousand m3 water withdrawal per 
+million dollars of revenue 0.09 0.09 0.09 0.10 0.12 0.14
+This symbol across the followin</div>
+</div>
+
+
+<div class="card">
+  <h3>Most narrative passage</h3>
+  <p class="subtle">Pure prose, almost no digits. The purest “voice” chunk in the corpus.</p>
+  <div class="meta">ASML · 2022 ASML Annual Report.pdf · chunk 45</div>
+  <div class="snippet">eading 
+manufacturers of chipmaking equipment, 
+while our customers are the world’s leading 
+microchip manufacturers. We enable them to 
+create the patterns that define the electronic 
+circuits on a chip, and consequently our 
+success is inextricably linked with theirs. 
+That’s why we collaborate with our 
+customers to understand how our 
+technology best fits their needs and 
+challenges. That means engaging with our 
+customers at all levels: building partnerships, 
+sharing know-ledge and risks, aligning our 
+investments in innovation and increasingly 
+focusing on the long-term challenges for the 
+next five to ten years and beyond. We 
+develop our 
+solutions based on their input, help them 
+achieve their technology and cost roadmaps, 
+and work together, often literally in the same 
+team, to make sure our solutions fit together 
+perfectly. 
+Engaging fully with customers is also an 
+importa</div>
+</div>
+
+
+<div class="card">
+  <h3>Near-twin #2: Applied Materials ↔ KLA</h3>
+  <p class="subtle">Another cross-competitor pair with near-identical content.</p>
+  <div class="meta">Applied Materials · 2024 Applied Materials Impact Report.pdf · chunk 123</div>
+  <div class="snippet">logy and manufacturing 
+equipment R&amp;D
+* In 2020, Applied established bold 3x30 goals focused on reducing the equivalent energy consumption, 
+ chemical impact and fab footprint of our systems by 30% by the end of this decade.
+2024 Highlights
+41
+INTRODUCTION ENSURING TRUST EMPOWERING PEOPLE ENVIRONMENTAL PROGRESS ABOUT THIS REPORT DATA AND DISCLOSURES
+Goals and Progress
+Scope 1, 2 and 3 Goals
+Goal Status* Progress ProgressUN SDG
+100% of electricity at Applied 
+globally comes from renewable 
+sources by 2030
+73% of electricity at Applied 
+globally, including 100% in 
+the U.S., came from renewable 
+sources
+50% reduction in Scope 1 and Scope 
+2 (market-based) emissions by 2030 
+from 2019 baseline
+Scope 1 and 2 (market-based) 
+emissions are 4% above our 
+2019 baseline levels
+55% reduction per million USD of value 
+added of Scope 3 Category 11 emissions 
+by 2030 from 2019 baseline for 
+semicondu</div>
+</div>
+
+
+<div class="card">
+  <h3>Near-twin #3: TEL ↔ ASML</h3>
+  <p class="subtle">Another cross-competitor pair with near-identical content.</p>
+  <div class="meta">TEL · Tokyo Electron Limited (TEL) 2024 Integrated Report (SustainabilityReports.com).pdf · chunk 97</div>
+  <div class="snippet">balance improved in the second half of 2023. 
+Growth of the AI server market and increasing expectations for 
+on-device AI as well led to rediscovery of growth potential in 
+the semiconductor industry.
+Going forward, further growth in the semiconductor and 
+semiconductor production equipment markets is expected as 
+the range of AI-based applications expands.
+Further growth in the semiconductor and semiconductor 
+production equipment markets will be supported by 
+technological innovation in semiconductor devices. In logic, 
+DRAM and NAND devices, demand is expected to continue 
+increasing for improved transistor performance and greater 
+storage capacity through further scaling and higher multi-
+layering, as well as for lower manufacturing costs and lower 
+power consumption. We will utilize our broad product lineup 
+and maximize quality in each process, while also providing 
+customers with</div>
+</div>
+
+
+<div class="card">
+  <h3>Group A center</h3>
+  <p class="subtle">The chunk at the middle of one of two groups the encoder finds on its own, without being told about prose or tables.</p>
+  <div class="meta">ASML · 2024 Annual Report based on IFRS.pdf · chunk 200</div>
+  <div class="snippet">uncertainties. 
+Read more in Strategic report – Other appendices – Special note 
+regarding forward-looking statements
+ 
+STRATEGIC REPORT CORPORATE GOVERNANCE SUSTAINABILITY FINANCIALS ASML Annual Report 2024 59
+At a glance Q&amp;A with the CEO 2024 stories Our business Performance Risk Corporate conduct
+Long-term growth opportunities
+
+Long-term growth opportunity for 2030
+At our November 2024 Investor Day, we provided an 
+update on our long-term growth opportunity for 2030. 
+The semiconductor industry remains strong and AI is 
+expected to create further opportunity.
+Our industry will require major innovations to address 
+the anticipated cost and power consumption challenges 
+of AI and this will further boost the industry roadmap in a 
+product mix shifting toward advanced Logic and DRAM.
+Our customers remain at the core of our strategy, and 
+we believe that lithography will remain at the hea</div>
+</div>
+
+
+<div class="card">
+  <h3>Group B center</h3>
+  <p class="subtle">The chunk at the middle of one of two groups the encoder finds on its own, without being told about prose or tables.</p>
+  <div class="meta">Lam Research · Lam-Research-2022-ESG-Report.pdf · chunk 19</div>
+  <div class="snippet">across our top-tier suppliers Annual
+• Engage with at least 50% of our top-tier suppliers on environmental sustainability opportunities Annual
+• Increase engagement with all suppliers on social and environmental topics through assessment, training, and capacity building Annual
+• 46.5% of suppliers measured by emissions will set SBTs5 Cumulative from baseline
+Community
+• Determine key targets for larger-scale impact aligned to a new strategic focus Annual
+• Implement measurement of outcomes for key program and large-scale grants Annual
+• Increase annual unique participation rate in all employee giving programs from 10% to 30% Cumulative from baseline
+• Increase employee volunteer hours by 33% from a 2019 baseline Cumulative from baseline
+As we progress in each of Lam’s ESG pillars, our goals keep us focused and accountable. In 2022, we 
+made important strides, including surpassing our wat</div>
+</div>
+
+
+<p class="subtle" style="margin-top:32px">← <a href="semantic_universe_explorer.html">back to the interactive viewer</a></p>
+</div></body></html>

@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Secrets
+.env
+.env.*
+
+# Source PDFs (255 MB - fetch on demand with scripts/fetch_reports.py)
+data/sample_data/
+
+# Build byproducts we don't want to commit
+*.log
