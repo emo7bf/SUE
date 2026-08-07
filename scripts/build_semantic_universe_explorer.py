@@ -2300,7 +2300,7 @@ purple for mixed. The viewer\u2019s *Prose\u2192Tabular* axis is
 empirically the same axis that separates the orange half from the blue
 half.
 
-![Anatomy of a Global Impact Report](sue_release/paper/figures/fig00_report_anatomy.png)
+![Anatomy of a Global Impact Report](docs/figures/fig00_report_anatomy.png)
 
 ## What each color mode means
 
