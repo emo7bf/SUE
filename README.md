@@ -9,9 +9,8 @@
 - **[Math & statistics](https://emo7bf.github.io/SUE/math_and_statistics.html)** — LDA, GMM, t-SNE, UMAP with
   every variable defined
 
-> If you’re reading this on GitHub, the **[more readable view of the
-> walk-through](https://emo7bf.github.io/SUE/sue_walkthru.html)** has hover thumbnails and rendered math
-> that the Markdown version doesn’t.
+> If you are reading this on GitHub, the **[full walk-through page](https://emo7bf.github.io/SUE/sue_walkthru.html)**
+> renders the math and figures that Markdown cannot.
 
 ---
 
@@ -35,69 +34,66 @@ equipment: [Applied Materials](https://www.appliedmaterials.com/content/dam/site
 and [Tokyo Electron](https://www.tel.com/ir/library/ar/pjsoh100000000rc-att/ir2025_all_en.pdf).
 
 Every dot in the interactive viewer represents one passage —
-approximately 900 characters — from one report. The passages are
-positioned by *semantic similarity* rather than by which firm wrote them.
-
-**Filter, colour, click, and read.**
+approximately 900 characters — from one report. Passages are
+positioned by semantic similarity rather than by authorship.
 
 ## Anatomy of a Global Impact Report
 
-Under the hood, a Global Impact Report is built from the same dozen
-recurring content types every year. Some read like corporate prose
-(a CEO letter, a governance chapter, a description of supplier
-audits); others are almost pure spreadsheet (Scope 1 / 2 / 3 emissions
-tables, water withdrawal by basin, workforce demographics). The
-diagram below names those twelve blocks and colours them by rhetorical
-register — blue for narrative-heavy, orange for tabular-heavy,
-purple for mixed. The viewer’s *Prose→Tabular* axis is
-empirically the same axis that separates the orange half from the blue
-half.
+A Global Impact Report is assembled from roughly a dozen recurring
+content types. Some are narrative (a CEO letter, a governance chapter,
+a description of supplier audits); others are predominantly tabular
+(Scope 1 / 2 / 3 emissions, water withdrawal by basin, workforce
+demographics). The diagram below labels those blocks and colours them
+by rhetorical register — blue for narrative-heavy, orange for
+tabular-heavy, purple for mixed. Empirically, the viewer’s
+*Prose→Tabular* axis coincides with the same partition.
 
 ![Anatomy of a Global Impact Report](docs/figures/fig00_report_anatomy.png)
 
 ## What each color mode means
 
-- **Company.** Every dot coloured by which of the five firms authored the
-  underlying passage. Useful for eyeballing whether any single firm
-  produces a visually distinct region of the space.
-- **Prose→Tabular score.** A number for each chunk from "very
-  narrative" (blue) through zero (mixed) to "very tabular" (red).
-  Projection onto the axis that connects the average narrative-chunk
-  location to the average tabular-chunk location.
-- **Digit density of text.** The unlearned control: what percentage of
-  the chunk’s characters are numerals. Whenever this and the
-  prose↔tabular score paint the same picture, that’s your sign
-  that the encoder’s "semantics" on this axis is really just
-  numerals.
-- **Cross-corpus outlierness.** For every chunk, how far is it from the
-  average of the OTHER four competitors’ embeddings? Red = far.
-- **In-doc typicality.** For every chunk, how far is it from the centre
-  of its own document?
-- **Unsupervised cluster (GMM).** A 2-component Gaussian mixture fit on
-  the top-20 principal components, without ever being told about prose
-  or tables. If it recovers the same partition anyway, that’s
-  evidence the split is real.
+- **Company.** Each chunk is coloured by its authoring firm. Provides
+  a visual check for whether any single firm occupies a distinct region
+  of the embedding space.
+- **Prose→Tabular score.** A scalar per chunk ranging from strongly
+  narrative (blue) through mixed (zero) to strongly tabular (red).
+  Formally, the projection of the chunk’s embedding onto the axis
+  joining the centroid of narrative-labelled chunks to the centroid of
+  tabular-labelled chunks.
+- **Digit density of text.** A non-learned control variable: the
+  fraction of a chunk’s characters that are numerals. Agreement
+  between digit density and the Prose→Tabular score suggests the
+  separation may reflect surface numeric content rather than learned
+  semantics.
+- **Cross-corpus outlierness.** For each chunk, the mean distance to
+  the centroids of the four other firms’ embeddings. Higher values
+  indicate passages atypical of the competitor set.
+- **In-doc typicality.** For each chunk, the distance from the centroid
+  of its own document.
+- **Unsupervised cluster (GMM).** A two-component Gaussian mixture
+  fitted on the top-20 principal components without access to any
+  prose/tabular label. Recovery of the same partition constitutes
+  independent evidence that the split is intrinsic to the corpus.
 
 ## Further statistical analyses
 
-The interactive viewer is the friendly front door. Underneath it sit a
-handful of standard statistical tools that all point at the same finding
-from different angles — the corpus is bimodal along a
-prose–tabular axis, and that split survives every dimensionality
-reduction we throw at it. See **[Math & statistics](https://emo7bf.github.io/SUE/math_and_statistics.html)** for
-plain-English explanations with every variable defined.
+The interactive viewer is one entry point to a corpus that also admits
+standard statistical treatment. Several complementary methods —
+each summarised in **[Math & statistics](https://emo7bf.github.io/SUE/math_and_statistics.html)** with all
+variables defined — indicate that the corpus is bimodal along a
+prose–tabular axis, and that this partition is preserved under
+multiple dimensionality reductions.
 
-- [LDA: the single direction that splits prose from tables](https://emo7bf.github.io/SUE/math_and_statistics.html#fig11_lda_prose_table)
-- [GMM: is the corpus one blob, or really two?](https://emo7bf.github.io/SUE/math_and_statistics.html#fig03_bimodality_gmm)
+- [LDA — the discriminant direction separating narrative from tabular chunks](https://emo7bf.github.io/SUE/math_and_statistics.html#fig11_lda_prose_table)
+- [GMM — one- vs. two-component fit on the top principal components](https://emo7bf.github.io/SUE/math_and_statistics.html#fig03_bimodality_gmm)
 - [t-SNE at four perplexities](https://emo7bf.github.io/SUE/math_and_statistics.html#fig08_tsne_grid)
 - [UMAP at four neighbourhood sizes](https://emo7bf.github.io/SUE/math_and_statistics.html#fig09_umap_grid)
 
 ## The five companies and their reports
 
-Every dot in the viewer is one ~900-character chunk of one of these
-firms’ Global Impact Reports. If a passage catches your eye and you
-want to see it in the original document, the reports themselves are one
-click away.
+Each chunk in the viewer corresponds to approximately 900 characters of
+one firm’s Global Impact Report. Links to the source documents are
+given below.
 
 | Company | 2025 | 2024 | 2023 | 2022 |
 |---|---|---|---|---|
@@ -114,7 +110,6 @@ click away.
 
 ---
 
-**[Open the walk-through in a more readable view](https://emo7bf.github.io/SUE/sue_walkthru.html)** if
-anything above was hard to follow on GitHub — the HTML version has
-rendered math, hover thumbnails for each concept, and full-resolution
-figures.
+**[Open the walk-through in a more readable view](https://emo7bf.github.io/SUE/sue_walkthru.html)** —
+the HTML version renders the math and full-resolution figures that
+GitHub’s Markdown viewer does not.

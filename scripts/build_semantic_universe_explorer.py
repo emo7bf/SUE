@@ -448,8 +448,8 @@ def curate_exhibits(df: pd.DataFrame, X: np.ndarray, dd: np.ndarray,
         exhibits.append(_entry(
             i,
             f"{c_name}: most off-consensus passage",
-            f"The paragraph in {c_name}\u2019s report that reads least "
-            "like anything its four competitors wrote."))
+            f"The passage in {c_name}\u2019s report with the greatest "
+            "mean distance to the four other firms\u2019 centroids."))
 
     # ---- 2. The sector\u2019s average sentence (single grand-centroid pick).
     # Kept narrative-only so we get something readable, not a table.
@@ -458,9 +458,9 @@ def curate_exhibits(df: pd.DataFrame, X: np.ndarray, dd: np.ndarray,
         cand = np.flatnonzero(narrative_mask)
         i = int(cand[np.argmin(dist_global[cand])])
         exhibits.append(_entry(
-            i, "The sector\u2019s average sentence",
-            "So central that it could have come from any of the five "
-            "reports. This is what \u201Cconsensus\u201D looks like."))
+            i, "Sector centroid \u2014 closest narrative passage",
+            "The narrative-heavy chunk (digit density &lt; 3%) nearest "
+            "the pooled corpus centroid across all five firms."))
 
     # ---- 3. Per-company \u201Cmost typical\u201D chunk (one per firm).
     # The counterpart to the off-consensus exhibits: the chunk closest
@@ -475,8 +475,8 @@ def curate_exhibits(df: pd.DataFrame, X: np.ndarray, dd: np.ndarray,
         exhibits.append(_entry(
             i,
             f"{c_name}: most typical passage",
-            f"The paragraph closest to the center of {c_name}\u2019s "
-            "report. What their writing sounds like on an average page."))
+            f"The passage closest to the centroid of {c_name}\u2019s "
+            "own report."))
 
     # ---- 4. Best cross-competitor near-twin (single strongest example).
     # Kept because it\u2019s the corpus\u2019 most compelling storytelling
@@ -510,20 +510,21 @@ def curate_exhibits(df: pd.DataFrame, X: np.ndarray, dd: np.ndarray,
         exhibits.append(_entry(
             i_own,
             f"Near-twin: {co_own} \u2194 {co_other}",
-            f"Two firms saying nearly the same thing. Click to spotlight "
-            f"the twin passage inside {co_other}\u2019s report."))
+            f"The strongest cross-firm near-duplicate: two passages by "
+            f"{co_own} and {co_other} with maximal cosine similarity."))
 
     # ---- 5. Prose \u2194 tabular axis extremes.
     i = int(np.argmax(proj))
     exhibits.append(_entry(
         i, "Most tabular passage",
-        "The densest wall of numbers in the whole corpus."))
+        "The chunk with the highest projection onto the Prose\u2192Tabular "
+        "axis \u2014 numerically the most table-like passage in the corpus."))
 
     i = int(np.argmin(proj))
     exhibits.append(_entry(
         i, "Most narrative passage",
-        "Pure prose, almost no digits. The purest \u201Cvoice\u201D "
-        "chunk in the corpus."))
+        "The chunk with the lowest projection onto the Prose\u2192Tabular "
+        "axis \u2014 the most prose-like passage in the corpus."))
 
     # ---- 6. Runner-up near-twins for the companion page.
     for k, (i_own, i_other, _) in enumerate(twin_pairs[1:], start=2):
@@ -532,7 +533,7 @@ def curate_exhibits(df: pd.DataFrame, X: np.ndarray, dd: np.ndarray,
         exhibits.append(_entry(
             i_own,
             f"Near-twin #{k}: {co_own} \u2194 {co_other}",
-            f"Another cross-competitor pair with near-identical content."))
+            f"A further cross-firm pair with high cosine similarity."))
 
     # ---- 7. GMM cluster reps.
     for cl in [0, 1]:
@@ -543,9 +544,10 @@ def curate_exhibits(df: pd.DataFrame, X: np.ndarray, dd: np.ndarray,
         d = np.linalg.norm(X[rows] - mu, axis=1)
         i = int(rows[np.argmin(d)])
         exhibits.append(_entry(
-            i, f"Group {chr(ord('A') + cl)} center",
-            "The chunk at the middle of one of two groups the encoder "
-            "finds on its own, without being told about prose or tables."))
+            i, f"GMM component {chr(ord('A') + cl)} \u2014 centroid",
+            "The chunk nearest the mean of one of the two mixture "
+            "components fitted in the top-20 PC subspace, without any "
+            "prose/tabular supervision."))
 
     curate_exhibits._twin_pairs = twin_pairs  # type: ignore[attr-defined]
     return exhibits
@@ -808,8 +810,8 @@ _HTML = """<!DOCTYPE html>
     </label>
     <input type="range" id="outliers-pct" min="1" max="50" value="15" style="margin-top:6px;">
     <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">
-      By cross-corpus outlierness. Reveals which chunks/docs sit apart
-      from what the sector has converged to.
+      Ranks each chunk by mean distance to the four other firms\u2019
+      centroids; identifies passages atypical of the competitor set.
     </div>
   </div>
 
@@ -832,15 +834,15 @@ _HTML = """<!DOCTYPE html>
   <div class="panel" id="inspector-panel">
     <h2>Selected point</h2>
     <div id="inspector-body">
-      <div class="empty">Click any point on the plot, or pick a Cool
-        example below.</div>
+      <div class="empty">Click any point on the plot, or select a
+        featured chunk below.</div>
     </div>
   </div>
 
   <div class="panel" id="cool-examples-panel">
-    <h2>Cool examples</h2>
+    <h2>Featured chunks</h2>
     <div id="exhibits-list"></div>
-    <a class="see-more" href="sue_walkthru.html">Examples and Walkthrough \u2192</a>
+    <a class="see-more" href="sue_walkthru.html">Walk-through \u2192</a>
   </div>
 </aside>
 
@@ -1278,7 +1280,7 @@ function updateInspector() {
   const el = document.getElementById('inspector-body');
   if (state.selection === null) {
     el.innerHTML = '<div class="empty">Click any point on the plot, or '
-      + 'pick a Cool example below.</div>';
+      + 'select a featured chunk below.</div>';
     return;
   }
   const c = DATA.chunks[state.selection];
@@ -1818,23 +1820,23 @@ def _render_walkthru_page(df: pd.DataFrame, exhibits: List[dict],
     # ---- Further Statistical Analyses thumbnails
     thumbs = [
         ("fig11_lda_prose_table.png",
-         "LDA: the single direction that splits prose from tables",
-         "Fisher's linear discriminant recovers the one axis where the "
-         "narrative and tabular class centroids sit farthest apart "
-         "relative to their internal spread."),
+         "LDA \u2014 discriminant direction separating prose from tabular chunks",
+         "Fisher's linear discriminant recovers the axis on which the "
+         "narrative and tabular class centroids are farthest apart "
+         "relative to within-class spread."),
         ("fig03_bimodality_gmm.png",
-         "GMM: is the corpus one blob, or really two?",
+         "GMM \u2014 one- vs. two-component fit on the top principal components",
          "A two-component Gaussian mixture fit in the top-20 PCA subspace. "
-         "\u0394BIC is strongly negative for two components \u2014 evidence "
-         "of genuine bimodality, not a projection artefact."),
+         "\u0394BIC is strongly negative for two components, consistent "
+         "with genuine bimodality rather than a projection artefact."),
         ("fig08_tsne_grid.png",
          "t-SNE at four perplexities",
-         "Neighbourhood-preserving 2D flattening at perplexity 5, 30, 100, "
-         "and 300. The two-lobe structure survives every setting."),
+         "Neighbourhood-preserving 2D embeddings at perplexity 5, 30, 100, "
+         "and 300. The two-lobe structure is preserved across settings."),
         ("fig09_umap_grid.png",
          "UMAP at four neighbourhood sizes",
-         "A different manifold-learning algorithm, same qualitative "
-         "picture: two lobes, held together by a strip of mixed points."),
+         "An independent manifold-learning method yields the same "
+         "qualitative structure: two lobes joined by a band of mixed points."),
     ]
     thumb_html = []
     for fname, title, note in thumbs:
@@ -1926,23 +1928,18 @@ semiconductor-manufacturing equipment:
 and <a href="https://www.tel.com/ir/library/ar/pjsoh100000000rc-att/ir2025_all_en.pdf">Tokyo Electron</a>.</p>
 
 <p>Every dot in the interactive viewer represents one passage \u2014
-approximately 900 characters \u2014 from one report. The passages are
-positioned by <em>semantic similarity</em> rather than by which firm
-wrote them.</p>
-
-<p><b>Filter, color, click, and read.</b></p>
+approximately 900 characters \u2014 from one report. Passages are
+positioned by semantic similarity rather than by authorship.</p>
 </div>
 
-<p>Under the hood, a Global Impact Report is built from the same dozen
-recurring content types every year. Some of them read like corporate
-prose (a CEO letter, a governance chapter, a description of supplier
-audits); others are almost pure spreadsheet (Scope 1 / 2 / 3 emissions
-tables, water withdrawal by basin, workforce demographics). The
-diagram below names those twelve blocks and colours them by rhetorical
-register \u2014 blue for narrative-heavy, orange for tabular-heavy,
-purple for mixed. The viewer\u2019s <em>Prose\u2192Tabular</em> axis
-is empirically the same axis that separates the orange half from the
-blue half.</p>
+<p>A Global Impact Report is assembled from roughly a dozen recurring
+content types. Some are narrative (a CEO letter, a governance chapter,
+a description of supplier audits); others are predominantly tabular
+(Scope 1 / 2 / 3 emissions, water withdrawal by basin, workforce
+demographics). The diagram below labels those blocks and colours them
+by rhetorical register \u2014 blue for narrative-heavy, orange for
+tabular-heavy, purple for mixed. Empirically, the viewer\u2019s
+<em>Prose\u2192Tabular</em> axis coincides with the same partition.</p>
 
 <figure class="paper-fig">
   <img src="figures/fig00_report_anatomy.png"
@@ -1957,47 +1954,42 @@ blue half.</p>
 <h2>What each color mode means</h2>
 <dl class="modes">
 <dt>Company</dt>
-<dd>Every dot colored by which of the five firms authored the underlying
-    passage. Useful for eyeballing whether any single firm produces a
-    visually distinct region of the space.</dd>
+<dd>Each chunk is coloured by its authoring firm. Provides a visual
+    check for whether any single firm occupies a distinct region of the
+    embedding space.</dd>
 <dt>Prose\u2192Tabular score (low = prose, high = tabular)</dt>
-<dd>A number for each chunk from \u201Cvery narrative\u201D (blue) through
-    zero (mixed) to \u201Cvery tabular\u201D (red). Computed as the
-    projection onto the axis that connects the average narrative-chunk
-    location to the average tabular-chunk location. The direction that
-    the fixed classifier <em>would</em> read as \u201Cnumbers vs.
-    words.\u201D</dd>
+<dd>A scalar per chunk ranging from strongly narrative (blue) through
+    mixed (zero) to strongly tabular (red). Formally, the projection of
+    the chunk\u2019s embedding onto the axis joining the centroid of
+    narrative-labelled chunks to the centroid of tabular-labelled chunks.</dd>
 <dt>Digit Density of Text</dt>
-<dd>The unlearned control: what percentage of the chunk\u2019s characters
-    are numerals. Purples = more numbers. Whenever the prose\u2194tabular
-    score and digit density paint the same picture, that\u2019s your sign
-    that the encoder\u2019s \u201Csemantics\u201D on this axis is really
-    just numerals.</dd>
+<dd>A non-learned control variable: the fraction of a chunk\u2019s
+    characters that are numerals. Agreement between digit density and
+    the Prose\u2192Tabular score suggests the observed separation may
+    reflect surface numeric content rather than learned semantics.</dd>
 <dt>Cross-corpus outlierness (rank)</dt>
-<dd>For every chunk, how far is it from the average of the OTHER four
-    competitors\u2019 embeddings? Red = far. This is the answer to
-    \u201Cwhich passages of firm X are doing something the other four
-    aren\u2019t?\u201D</dd>
+<dd>For each chunk, the mean distance to the centroids of the four
+    other firms\u2019 embeddings. Higher values indicate passages
+    atypical of the competitor set.</dd>
 <dt>In-doc typicality</dt>
-<dd>For every chunk, how far is it from the center of its own document?
-    Yellow = close to the doc\u2019s center of gravity, viridis-blue =
-    far. Useful for spotting chunks that read very unlike the rest of
-    their own report.</dd>
+<dd>For each chunk, the distance from the centroid of its own document.
+    Useful for identifying passages that depart from the rest of the
+    same report.</dd>
 <dt>Unsupervised cluster (GMM)</dt>
-<dd>A 2-component Gaussian mixture fit on the top-20 principal components,
-    without ever being told about prose or tables. If it recovers the
-    same partition anyway, that\u2019s evidence the split is real.</dd>
+<dd>A two-component Gaussian mixture fitted on the top-20 principal
+    components without access to any prose/tabular label. Recovery of
+    the same partition constitutes independent evidence that the split
+    is intrinsic to the corpus.</dd>
 </dl>
 
 <h2>Further Statistical Analyses</h2>
-<p>The interactive viewer is the friendly front door. Underneath it
-sit a handful of standard statistical tools that all point at the same
-finding from different angles \u2014 the corpus is bimodal along a
-prose\u2013tabular axis, and that split survives every dimensionality
-reduction we throw at it. Each thumbnail below jumps to a short,
-plain-English explanation of what the method actually does. If any of
-the words feel unfamiliar (LDA, GMM, t-SNE, UMAP), that page is written
-for a reader who has taken high-school calculus and no more.</p>
+<p>The interactive viewer is one entry point to a corpus that also
+admits standard statistical treatment. Several complementary methods
+\u2014 each summarised on the Math &amp; statistics page with all
+variables defined \u2014 indicate that the corpus is bimodal along a
+prose\u2013tabular axis, and that this partition is preserved under
+multiple dimensionality reductions. Click a thumbnail to jump to the
+corresponding section.</p>
 <div class="thumbs">
 {thumbs_section}
 </div>
@@ -2005,10 +1997,9 @@ for a reader who has taken high-school calculus and no more.</p>
 page \u2192</b></a></p>
 
 <h2>The five companies and their reports</h2>
-<p>Every dot in the viewer is one ~900-character chunk of one of these
-firms' Global Impact Reports. If a passage catches your eye and you
-want to see it in the original document, the reports themselves are
-one click away.</p>
+<p>Each chunk in the viewer corresponds to approximately 900
+characters of one firm\u2019s Global Impact Report. Links to the
+source documents are given below.</p>
 {companies_table}
 
 <p class="subtle" style="margin-top:32px">\u2190 <a href="semantic_universe_explorer.html">back to the interactive viewer</a></p>
@@ -2118,8 +2109,8 @@ one-component fit using BIC:</p>
   \\)
 </p>
 
-<p>The \\(k\\ln n\\) penalty is what stops us from calling every dent
-in the density a separate mode. A large negative
+<p>The \\(k\\ln n\\) penalty guards against over-fitting spurious
+modes at the cost of parameter parsimony. A large negative
 \\(\\Delta\\text{{BIC}}\\) says two components are worth the extra
 parameters. On this corpus the recovered components empirically align
 with the LDA axis \u2014 the density preferred by the data agrees with
@@ -2256,9 +2247,8 @@ def _render_readme(companies: List[str]) -> str:
 - **[Math & statistics]({math_html})** \u2014 LDA, GMM, t-SNE, UMAP with
   every variable defined
 
-> If you\u2019re reading this on GitHub, the **[more readable view of the
-> walk-through]({walkthru_html})** has hover thumbnails and rendered math
-> that the Markdown version doesn\u2019t.
+> If you are reading this on GitHub, the **[full walk-through page]({walkthru_html})**
+> renders the math and figures that Markdown cannot.
 
 ---
 
@@ -2282,69 +2272,66 @@ equipment: [Applied Materials](https://www.appliedmaterials.com/content/dam/site
 and [Tokyo Electron](https://www.tel.com/ir/library/ar/pjsoh100000000rc-att/ir2025_all_en.pdf).
 
 Every dot in the interactive viewer represents one passage \u2014
-approximately 900 characters \u2014 from one report. The passages are
-positioned by *semantic similarity* rather than by which firm wrote them.
-
-**Filter, colour, click, and read.**
+approximately 900 characters \u2014 from one report. Passages are
+positioned by semantic similarity rather than by authorship.
 
 ## Anatomy of a Global Impact Report
 
-Under the hood, a Global Impact Report is built from the same dozen
-recurring content types every year. Some read like corporate prose
-(a CEO letter, a governance chapter, a description of supplier
-audits); others are almost pure spreadsheet (Scope 1 / 2 / 3 emissions
-tables, water withdrawal by basin, workforce demographics). The
-diagram below names those twelve blocks and colours them by rhetorical
-register \u2014 blue for narrative-heavy, orange for tabular-heavy,
-purple for mixed. The viewer\u2019s *Prose\u2192Tabular* axis is
-empirically the same axis that separates the orange half from the blue
-half.
+A Global Impact Report is assembled from roughly a dozen recurring
+content types. Some are narrative (a CEO letter, a governance chapter,
+a description of supplier audits); others are predominantly tabular
+(Scope 1 / 2 / 3 emissions, water withdrawal by basin, workforce
+demographics). The diagram below labels those blocks and colours them
+by rhetorical register \u2014 blue for narrative-heavy, orange for
+tabular-heavy, purple for mixed. Empirically, the viewer\u2019s
+*Prose\u2192Tabular* axis coincides with the same partition.
 
 ![Anatomy of a Global Impact Report](docs/figures/fig00_report_anatomy.png)
 
 ## What each color mode means
 
-- **Company.** Every dot coloured by which of the five firms authored the
-  underlying passage. Useful for eyeballing whether any single firm
-  produces a visually distinct region of the space.
-- **Prose\u2192Tabular score.** A number for each chunk from "very
-  narrative" (blue) through zero (mixed) to "very tabular" (red).
-  Projection onto the axis that connects the average narrative-chunk
-  location to the average tabular-chunk location.
-- **Digit density of text.** The unlearned control: what percentage of
-  the chunk\u2019s characters are numerals. Whenever this and the
-  prose\u2194tabular score paint the same picture, that\u2019s your sign
-  that the encoder\u2019s "semantics" on this axis is really just
-  numerals.
-- **Cross-corpus outlierness.** For every chunk, how far is it from the
-  average of the OTHER four competitors\u2019 embeddings? Red = far.
-- **In-doc typicality.** For every chunk, how far is it from the centre
-  of its own document?
-- **Unsupervised cluster (GMM).** A 2-component Gaussian mixture fit on
-  the top-20 principal components, without ever being told about prose
-  or tables. If it recovers the same partition anyway, that\u2019s
-  evidence the split is real.
+- **Company.** Each chunk is coloured by its authoring firm. Provides
+  a visual check for whether any single firm occupies a distinct region
+  of the embedding space.
+- **Prose\u2192Tabular score.** A scalar per chunk ranging from strongly
+  narrative (blue) through mixed (zero) to strongly tabular (red).
+  Formally, the projection of the chunk\u2019s embedding onto the axis
+  joining the centroid of narrative-labelled chunks to the centroid of
+  tabular-labelled chunks.
+- **Digit density of text.** A non-learned control variable: the
+  fraction of a chunk\u2019s characters that are numerals. Agreement
+  between digit density and the Prose\u2192Tabular score suggests the
+  separation may reflect surface numeric content rather than learned
+  semantics.
+- **Cross-corpus outlierness.** For each chunk, the mean distance to
+  the centroids of the four other firms\u2019 embeddings. Higher values
+  indicate passages atypical of the competitor set.
+- **In-doc typicality.** For each chunk, the distance from the centroid
+  of its own document.
+- **Unsupervised cluster (GMM).** A two-component Gaussian mixture
+  fitted on the top-20 principal components without access to any
+  prose/tabular label. Recovery of the same partition constitutes
+  independent evidence that the split is intrinsic to the corpus.
 
 ## Further statistical analyses
 
-The interactive viewer is the friendly front door. Underneath it sit a
-handful of standard statistical tools that all point at the same finding
-from different angles \u2014 the corpus is bimodal along a
-prose\u2013tabular axis, and that split survives every dimensionality
-reduction we throw at it. See **[Math & statistics]({math_html})** for
-plain-English explanations with every variable defined.
+The interactive viewer is one entry point to a corpus that also admits
+standard statistical treatment. Several complementary methods \u2014
+each summarised in **[Math & statistics]({math_html})** with all
+variables defined \u2014 indicate that the corpus is bimodal along a
+prose\u2013tabular axis, and that this partition is preserved under
+multiple dimensionality reductions.
 
-- [LDA: the single direction that splits prose from tables]({math_html}#fig11_lda_prose_table)
-- [GMM: is the corpus one blob, or really two?]({math_html}#fig03_bimodality_gmm)
+- [LDA \u2014 the discriminant direction separating narrative from tabular chunks]({math_html}#fig11_lda_prose_table)
+- [GMM \u2014 one- vs. two-component fit on the top principal components]({math_html}#fig03_bimodality_gmm)
 - [t-SNE at four perplexities]({math_html}#fig08_tsne_grid)
 - [UMAP at four neighbourhood sizes]({math_html}#fig09_umap_grid)
 
 ## The five companies and their reports
 
-Every dot in the viewer is one ~900-character chunk of one of these
-firms\u2019 Global Impact Reports. If a passage catches your eye and you
-want to see it in the original document, the reports themselves are one
-click away.
+Each chunk in the viewer corresponds to approximately 900 characters of
+one firm\u2019s Global Impact Report. Links to the source documents are
+given below.
 
 {table_md}
 
@@ -2352,10 +2339,9 @@ click away.
 
 ---
 
-**[Open the walk-through in a more readable view]({walkthru_html})** if
-anything above was hard to follow on GitHub \u2014 the HTML version has
-rendered math, hover thumbnails for each concept, and full-resolution
-figures.
+**[Open the walk-through in a more readable view]({walkthru_html})** \u2014
+the HTML version renders the math and full-resolution figures that
+GitHub\u2019s Markdown viewer does not.
 """
 
 

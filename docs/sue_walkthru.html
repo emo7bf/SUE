@@ -151,23 +151,18 @@ semiconductor-manufacturing equipment:
 and <a href="https://www.tel.com/ir/library/ar/pjsoh100000000rc-att/ir2025_all_en.pdf">Tokyo Electron</a>.</p>
 
 <p>Every dot in the interactive viewer represents one passage —
-approximately 900 characters — from one report. The passages are
-positioned by <em>semantic similarity</em> rather than by which firm
-wrote them.</p>
-
-<p><b>Filter, color, click, and read.</b></p>
+approximately 900 characters — from one report. Passages are
+positioned by semantic similarity rather than by authorship.</p>
 </div>
 
-<p>Under the hood, a Global Impact Report is built from the same dozen
-recurring content types every year. Some of them read like corporate
-prose (a CEO letter, a governance chapter, a description of supplier
-audits); others are almost pure spreadsheet (Scope 1 / 2 / 3 emissions
-tables, water withdrawal by basin, workforce demographics). The
-diagram below names those twelve blocks and colours them by rhetorical
-register — blue for narrative-heavy, orange for tabular-heavy,
-purple for mixed. The viewer’s <em>Prose→Tabular</em> axis
-is empirically the same axis that separates the orange half from the
-blue half.</p>
+<p>A Global Impact Report is assembled from roughly a dozen recurring
+content types. Some are narrative (a CEO letter, a governance chapter,
+a description of supplier audits); others are predominantly tabular
+(Scope 1 / 2 / 3 emissions, water withdrawal by basin, workforce
+demographics). The diagram below labels those blocks and colours them
+by rhetorical register — blue for narrative-heavy, orange for
+tabular-heavy, purple for mixed. Empirically, the viewer’s
+<em>Prose→Tabular</em> axis coincides with the same partition.</p>
 
 <figure class="paper-fig">
   <img src="figures/fig00_report_anatomy.png"
@@ -182,77 +177,71 @@ blue half.</p>
 <h2>What each color mode means</h2>
 <dl class="modes">
 <dt>Company</dt>
-<dd>Every dot colored by which of the five firms authored the underlying
-    passage. Useful for eyeballing whether any single firm produces a
-    visually distinct region of the space.</dd>
+<dd>Each chunk is coloured by its authoring firm. Provides a visual
+    check for whether any single firm occupies a distinct region of the
+    embedding space.</dd>
 <dt>Prose→Tabular score (low = prose, high = tabular)</dt>
-<dd>A number for each chunk from “very narrative” (blue) through
-    zero (mixed) to “very tabular” (red). Computed as the
-    projection onto the axis that connects the average narrative-chunk
-    location to the average tabular-chunk location. The direction that
-    the fixed classifier <em>would</em> read as “numbers vs.
-    words.”</dd>
+<dd>A scalar per chunk ranging from strongly narrative (blue) through
+    mixed (zero) to strongly tabular (red). Formally, the projection of
+    the chunk’s embedding onto the axis joining the centroid of
+    narrative-labelled chunks to the centroid of tabular-labelled chunks.</dd>
 <dt>Digit Density of Text</dt>
-<dd>The unlearned control: what percentage of the chunk’s characters
-    are numerals. Purples = more numbers. Whenever the prose↔tabular
-    score and digit density paint the same picture, that’s your sign
-    that the encoder’s “semantics” on this axis is really
-    just numerals.</dd>
+<dd>A non-learned control variable: the fraction of a chunk’s
+    characters that are numerals. Agreement between digit density and
+    the Prose→Tabular score suggests the observed separation may
+    reflect surface numeric content rather than learned semantics.</dd>
 <dt>Cross-corpus outlierness (rank)</dt>
-<dd>For every chunk, how far is it from the average of the OTHER four
-    competitors’ embeddings? Red = far. This is the answer to
-    “which passages of firm X are doing something the other four
-    aren’t?”</dd>
+<dd>For each chunk, the mean distance to the centroids of the four
+    other firms’ embeddings. Higher values indicate passages
+    atypical of the competitor set.</dd>
 <dt>In-doc typicality</dt>
-<dd>For every chunk, how far is it from the center of its own document?
-    Yellow = close to the doc’s center of gravity, viridis-blue =
-    far. Useful for spotting chunks that read very unlike the rest of
-    their own report.</dd>
+<dd>For each chunk, the distance from the centroid of its own document.
+    Useful for identifying passages that depart from the rest of the
+    same report.</dd>
 <dt>Unsupervised cluster (GMM)</dt>
-<dd>A 2-component Gaussian mixture fit on the top-20 principal components,
-    without ever being told about prose or tables. If it recovers the
-    same partition anyway, that’s evidence the split is real.</dd>
+<dd>A two-component Gaussian mixture fitted on the top-20 principal
+    components without access to any prose/tabular label. Recovery of
+    the same partition constitutes independent evidence that the split
+    is intrinsic to the corpus.</dd>
 </dl>
 
 <h2>Further Statistical Analyses</h2>
-<p>The interactive viewer is the friendly front door. Underneath it
-sit a handful of standard statistical tools that all point at the same
-finding from different angles — the corpus is bimodal along a
-prose–tabular axis, and that split survives every dimensionality
-reduction we throw at it. Each thumbnail below jumps to a short,
-plain-English explanation of what the method actually does. If any of
-the words feel unfamiliar (LDA, GMM, t-SNE, UMAP), that page is written
-for a reader who has taken high-school calculus and no more.</p>
+<p>The interactive viewer is one entry point to a corpus that also
+admits standard statistical treatment. Several complementary methods
+— each summarised on the Math &amp; statistics page with all
+variables defined — indicate that the corpus is bimodal along a
+prose–tabular axis, and that this partition is preserved under
+multiple dimensionality reductions. Click a thumbnail to jump to the
+corresponding section.</p>
 <div class="thumbs">
 <a class="thumb" href="math_and_statistics.html#fig11_lda_prose_table">
-  <img src="figures/fig11_lda_prose_table.png" alt="LDA: the single direction that splits prose from tables">
-  <div class="thumb-title">LDA: the single direction that splits prose from tables</div>
-  <div class="thumb-note">Fisher&#x27;s linear discriminant recovers the one axis where the narrative and tabular class centroids sit farthest apart relative to their internal spread.</div>
+  <img src="figures/fig11_lda_prose_table.png" alt="LDA — discriminant direction separating prose from tabular chunks">
+  <div class="thumb-title">LDA — discriminant direction separating prose from tabular chunks</div>
+  <div class="thumb-note">Fisher&#x27;s linear discriminant recovers the axis on which the narrative and tabular class centroids are farthest apart relative to within-class spread.</div>
 </a>
 <a class="thumb" href="math_and_statistics.html#fig03_bimodality_gmm">
-  <img src="figures/fig03_bimodality_gmm.png" alt="GMM: is the corpus one blob, or really two?">
-  <div class="thumb-title">GMM: is the corpus one blob, or really two?</div>
-  <div class="thumb-note">A two-component Gaussian mixture fit in the top-20 PCA subspace. ΔBIC is strongly negative for two components — evidence of genuine bimodality, not a projection artefact.</div>
+  <img src="figures/fig03_bimodality_gmm.png" alt="GMM — one- vs. two-component fit on the top principal components">
+  <div class="thumb-title">GMM — one- vs. two-component fit on the top principal components</div>
+  <div class="thumb-note">A two-component Gaussian mixture fit in the top-20 PCA subspace. ΔBIC is strongly negative for two components, consistent with genuine bimodality rather than a projection artefact.</div>
 </a>
 <a class="thumb" href="math_and_statistics.html#fig08_tsne_grid">
   <img src="figures/fig08_tsne_grid.png" alt="t-SNE at four perplexities">
   <div class="thumb-title">t-SNE at four perplexities</div>
-  <div class="thumb-note">Neighbourhood-preserving 2D flattening at perplexity 5, 30, 100, and 300. The two-lobe structure survives every setting.</div>
+  <div class="thumb-note">Neighbourhood-preserving 2D embeddings at perplexity 5, 30, 100, and 300. The two-lobe structure is preserved across settings.</div>
 </a>
 <a class="thumb" href="math_and_statistics.html#fig09_umap_grid">
   <img src="figures/fig09_umap_grid.png" alt="UMAP at four neighbourhood sizes">
   <div class="thumb-title">UMAP at four neighbourhood sizes</div>
-  <div class="thumb-note">A different manifold-learning algorithm, same qualitative picture: two lobes, held together by a strip of mixed points.</div>
+  <div class="thumb-note">An independent manifold-learning method yields the same qualitative structure: two lobes joined by a band of mixed points.</div>
 </a>
 </div>
 <p><a href="math_and_statistics.html"><b>Open the Math &amp; Statistics
 page →</b></a></p>
 
 <h2>The five companies and their reports</h2>
-<p>Every dot in the viewer is one ~900-character chunk of one of these
-firms' Global Impact Reports. If a passage catches your eye and you
-want to see it in the original document, the reports themselves are
-one click away.</p>
+<p>Each chunk in the viewer corresponds to approximately 900
+characters of one firm’s Global Impact Report. Links to the
+source documents are given below.</p>
 <table class="companies">
 <thead><tr><th>Company</th><th>2025</th><th>2024</th><th>2023</th><th>2022</th></tr></thead>
 <tbody>
