@@ -1,0 +1,40 @@
+{
+  "_note": "Multi-year Global Impact Report URLs for the five firms in SUE. The walkthrough page renders one row per company and one column per year (in reverse-chronological order given by _years). Each cell may be {label, url, footnote} or an empty object (renders as em-dash).",
+  "_years": ["2025", "2024", "2023", "2022"],
+  "_footnotes": {
+    "1": "Shorter 'Sustainability Highlights' brochure rather than a full report.",
+    "2": "No 2025 report published yet at time of writing.",
+    "3": "The 2022 KLA report was pulled from KLA's own site; linked here via the third-party archive at responsibilityreports.com.",
+    "4": "TEL's 2022 sustainability content was published as a web page rather than a single downloadable PDF."
+  },
+  "Applied Materials": {
+    "2025": {"label": "Impact Report", "url": "https://www.appliedmaterials.com/content/dam/site/company/csr/doc/2025_impact_report.pdf.coredownload.inline.pdf"},
+    "2024": {"label": "Impact Report", "url": "https://www.appliedmaterials.com/content/dam/site/company/csr/doc/2024_impact_report.pdf.coredownload.inline.pdf"},
+    "2023": {"label": "Sustainability Highlights", "url": "https://www.appliedmaterials.com/content/dam/site/company/csr/doc/2023_Sustainability_Highlights.pdf.coredownload.inline.pdf", "footnote": "1"},
+    "2022": {"label": "Sustainability Report", "url": "https://www.appliedmaterials.com/content/dam/site/company/csr/doc/2022_Sustainability_F.pdf.coredownload.inline.pdf"}
+  },
+  "ASML": {
+    "2025": {"label": "Annual Report", "url": "https://www.asml.com/en/investors/annual-report/2025"},
+    "2024": {"label": "Annual Report", "url": "https://www.asml.com/en/investors/annual-report/2024"},
+    "2023": {"label": "Annual Report", "url": "https://www.asml.com/en/investors/annual-report/2023"},
+    "2022": {"label": "Annual Report", "url": "https://www.asml.com/en/investors/annual-report/2022"}
+  },
+  "KLA": {
+    "2025": {"label": "\u2014", "url": "", "footnote": "2"},
+    "2024": {"label": "Global Impact Report", "url": "https://www.kla.com/wp-content/uploads/2024-KLA-Global-Impact-Report.pdf"},
+    "2023": {"label": "Global Impact Report", "url": "https://www.kla.com/wp-content/uploads/KLA-Global-Impact-Report-3.pdf"},
+    "2022": {"label": "Global Impact Report (archived copy)", "url": "https://www.responsibilityreports.com/HostedData/ResponsibilityReportArchive/k/NASDAQ_KLAC_2022.pdf", "footnote": "3"}
+  },
+  "Lam Research": {
+    "2025": {"label": "Global Impact Report", "url": "https://www.lamresearch.com/wp-content/uploads/2026/05/Lam-Research-2025-Global-Impact-Report.pdf"},
+    "2024": {"label": "Global Impact Report", "url": "https://www.lamresearch.com/wp-content/uploads/2025/07/Lam-Research-2024-Global-Impact-Report.pdf"},
+    "2023": {"label": "ESG Report", "url": "https://www.lamresearch.com/wp-content/uploads/2024/06/Lam-Research-2023-ESG-Report.pdf"},
+    "2022": {"label": "ESG Report", "url": "https://www.lamresearch.com/wp-content/uploads/2024/06/Lam-Research-2022-ESG-Report.pdf"}
+  },
+  "Tokyo Electron": {
+    "2025": {"label": "Integrated Report", "url": "https://www.tel.com/ir/library/ar/pjsoh100000000rc-att/ir2025_all_en.pdf"},
+    "2024": {"label": "Integrated Report", "url": "https://www.tel.com/ir/library/ar/egp82m00000000h7-att/ir2024_all_en.pdf"},
+    "2023": {"label": "Integrated Report", "url": "https://www.tel.com/ir/library/ar/f3gfkt000000003v-att/ir2023_all_en_r.pdf"},
+    "2022": {"label": "Sustainability Report", "url": "https://www.tel.com/sustainability/report/index.html", "footnote": "4"}
+  }
+}
