@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SUE Math &amp; Statistics — LDA, GMM, t-SNE, UMAP</title>
+<style>
+:root { --bg:#f7f7f8; --panel:#fff; --border:#d9d9de; --text:#1e1e22;
+        --muted:#55575c; --accent:#a45a1e; --accent2:#4a6a8a;
+        --highlight:#fff5e0; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text);
+       font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+       font-size:15px; line-height:1.55; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 20px 24px 60px; }
+header a.back { color: var(--accent2); text-decoration: none;
+                border-bottom: 1px dotted var(--accent2); }
+h1 { font-size: 28px; margin: 8px 0 4px; }
+h1 .accent { color: var(--accent); }
+h2 { font-size: 20px; color: var(--accent); margin: 36px 0 8px;
+     border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+h3 { font-size: 16px; margin: 20px 0 4px; color: var(--accent2); }
+p { margin: 8px 0; }
+.subtle { color: var(--muted); font-size: 13.5px; }
+.card { background: var(--panel); border: 1px solid var(--border);
+        border-radius: 8px; padding: 14px 18px; margin: 14px 0; }
+.card h3 { margin-top: 0; }
+.twin { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.twin .side { background: var(--highlight); border-left: 3px solid var(--accent);
+              padding: 10px 12px; border-radius: 4px; font-size: 14px;
+              white-space: pre-wrap; }
+.twin .side .who { font-weight: bold; color: var(--accent2);
+                    font-size: 12.5px; margin-bottom: 6px;
+                    text-transform: uppercase; letter-spacing: 0.05em; }
+.snippet { background: var(--highlight); border-left: 3px solid var(--accent);
+           padding: 10px 12px; border-radius: 4px; font-size: 14px;
+           white-space: pre-wrap; margin: 8px 0; position: relative; }
+/* Collapse long exhibit snippets to about six lines with a soft fade
+   and let the reader click "Expand" to see the rest. */
+.card .snippet[data-collapsed="1"] {
+  max-height: 8.4em; overflow: hidden;
+}
+.card .snippet[data-collapsed="1"]::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+  height: 2.2em; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), var(--highlight));
+}
+.card .snippet-toggle {
+  border: none; background: transparent; color: var(--accent2);
+  font-size: 12.5px; padding: 4px 0 0; margin: 0; cursor: pointer;
+  border-bottom: 1px dotted var(--accent2);
+}
+.card .snippet-toggle:hover { color: var(--accent);
+                              border-bottom-color: var(--accent); }
+.meta { color: var(--muted); font-size: 12.5px; margin: 4px 0; }
+dl.modes dt { font-weight: bold; color: var(--accent2); margin-top: 12px; }
+dl.modes dd { margin: 2px 0 8px 0; }
+@media (max-width: 720px) { .twin { grid-template-columns: 1fr; } }
+
+/* Full-width paper figures inside walkthrough */
+figure.paper-fig { margin: 16px 0 24px; text-align: center; }
+figure.paper-fig img { max-width: 100%; height: auto;
+                       border: 1px solid var(--border);
+                       border-radius: 6px; background: #fff; }
+figure.paper-fig figcaption { color: var(--muted); font-size: 13px;
+                              font-style: italic; margin-top: 6px;
+                              padding: 0 12px; }
+
+/* Thumbnail grid for the "Further Statistical Analyses" section */
+.thumbs { display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 14px; margin: 12px 0; }
+.thumb { display: block; text-decoration: none; color: inherit;
+         background: var(--panel); border: 1px solid var(--border);
+         border-radius: 8px; padding: 10px 12px; transition: box-shadow .12s; }
+.thumb:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08);
+               border-color: var(--accent2); }
+.thumb img { width: 100%; height: 130px; object-fit: cover;
+             object-position: center; border-radius: 4px;
+             background: #fff; }
+.thumb .thumb-title { font-weight: bold; color: var(--accent2);
+                      font-size: 13.5px; margin: 8px 0 2px; }
+.thumb .thumb-note  { color: var(--muted); font-size: 12px; }
+
+/* Companies-and-reports table at page bottom */
+table.companies { width: 100%; border-collapse: collapse;
+                  margin: 12px 0 24px; font-size: 14px; }
+table.companies th, table.companies td {
+  padding: 8px 10px; text-align: left;
+  border-bottom: 1px solid var(--border); vertical-align: top;
+}
+table.companies th { color: var(--accent2); font-size: 12.5px;
+                     text-transform: uppercase; letter-spacing: 0.03em; }
+table.companies a { color: var(--accent2); text-decoration: none;
+                    border-bottom: 1px dotted var(--accent2); }
+table.companies a:hover { color: var(--accent);
+                          border-bottom-color: var(--accent); }
+table.companies sup { font-size: 10px; color: var(--muted);
+                      margin-left: 2px; }
+ol.fn-list { padding-left: 20px; color: var(--muted); font-size: 12px;
+             margin: 0 0 24px; }
+ol.fn-list li { margin: 2px 0; list-style: none; }
+ol.fn-list sup { color: var(--accent2); margin-right: 4px; }
+
+/* Simple intro block above the h2s */
+.intro p { margin: 10px 0; }
+.intro a { color: var(--accent2); border-bottom: 1px dotted var(--accent2);
+           text-decoration: none; }
+.intro a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Top-of-page nav bar linking the three SUE pages together. */
+nav.sue-nav {
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  font-size: 13px; margin: 0 0 22px;
+  border-bottom: 1px solid var(--border); padding-bottom: 10px;
+}
+nav.sue-nav a {
+  color: var(--accent2); text-decoration: none;
+  border-bottom: 1px dotted transparent; padding-bottom: 1px;
+}
+nav.sue-nav a:hover { color: var(--accent);
+                       border-bottom-color: var(--accent); }
+nav.sue-nav a.current { color: var(--text); font-weight: bold;
+                         border-bottom-color: var(--text); }
+nav.sue-nav .sep { color: var(--muted); }
+
+</style>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head><body>
+<div class="wrap">
+<nav class="sue-nav"><a href="semantic_universe_explorer.html">Interactive viewer</a> <span class="sep">·</span> <a href="sue_walkthru.html">Walk-through</a> <span class="sep">·</span> <a class="current" href="math_and_statistics.html">Math &amp; statistics</a></nav>
+<header>
+  <h1>Math &amp; <span class="accent">Statistics</span></h1>
+</header>
+
+<h2>Why four different views</h2>
+
+<p>The 3-D scatter in the viewer is a PCA projection — a linear,
+variance-maximising map from \(\mathbb{R}^{384}\) to
+\(\mathbb{R}^{3}\). Any structure it shows could in principle be
+an artefact of that particular projection. The four methods below
+interrogate the same 384-D cloud from independent angles: LDA with
+supervised class labels, GMM as an unsupervised density fit, t-SNE
+and UMAP as nonlinear neighbourhood-preserving embeddings. If a
+finding survives all four, it is a property of the corpus and not of
+one plot.</p>
+
+<p>One structural note before any numbers: <b>Applied Materials</b>
+ships a lean standalone Impact Report; <b>KLA</b> and <b>Lam</b> sit in
+the middle; <b>TEL</b> and <b>ASML</b> fold their ESG disclosure into
+Integrated / Annual Reports, so their corpora are longer and mix in
+management discussion, risk factors, and audit-committee prose. Any
+per-firm metric computed without conditioning on content-type reads
+that <em>format</em> confound as a <em>voice</em> difference.</p>
+
+<h2 id="fig11_lda_prose_table">1. Linear Discriminant Analysis (LDA)</h2>
+
+<p>Given class labels \(A\) (prose) and \(B\) (table), LDA finds
+the 1-D direction that maximises Fisher’s ratio, i.e. the
+projected signal-to-noise:</p>
+
+<p style="text-align:center">
+  \( \displaystyle
+     J(w) \;=\; \frac{(w^{\top}(μ_A-μ_B))^2}
+                        {w^{\top}\,S_W\,w},
+     \qquad
+     w^{\star} \;\propto\; S_W^{-1}(μ_A-μ_B).
+  \)
+</p>
+
+<p>The class labels are cheap: a chunk is called <em>tabular</em> if
+its digit density exceeds a threshold, <em>prose</em> otherwise —
+a purely surface feature the sentence encoder was never told to
+model.</p>
+
+<figure class="paper-fig">
+  <img src="figures/fig11_lda_prose_table.png"
+       alt="LDA histogram of prose vs. tabular chunks">
+  <figcaption>Projections onto \(w^{\star}\), rescaled to pooled
+    within-class standard deviations. Class centroids sit several
+    standard deviations apart with negligible overlap. The encoder was
+    trained on generic English and never told which passages were
+    tables; the linear separability is nonetheless clean.</figcaption>
+</figure>
+
+<h2 id="fig03_bimodality_gmm">2. Gaussian Mixture Model (GMM)</h2>
+
+<p>An unsupervised counterpart to the LDA test. Fit</p>
+
+<p style="text-align:center">
+  \( \displaystyle
+     p(x) \;=\; π_1\,\mathcal{N}(x \mid μ_1, Σ_1)
+                 \;+\; π_2\,\mathcal{N}(x \mid μ_2, Σ_2)
+  \)
+</p>
+
+<p>in the top-20 PC subspace via EM, then compare against a
+one-component fit using BIC:</p>
+
+<p style="text-align:center">
+  \( \displaystyle
+     \text{BIC} \;=\; -2\ln L \;+\; k\,\ln n,
+     \qquad
+     \Delta\text{BIC} \;=\; \text{BIC}_{2} - \text{BIC}_{1}.
+  \)
+</p>
+
+<p>The \(k\ln n\) penalty is what stops us from calling every dent
+in the density a separate mode. A large negative
+\(\Delta\text{BIC}\) says two components are worth the extra
+parameters. On this corpus the recovered components empirically align
+with the LDA axis — the density preferred by the data agrees with
+the direction preferred by the labels.</p>
+
+<figure class="paper-fig">
+  <img src="figures/fig03_bimodality_gmm.png"
+       alt="Two-component GMM fit to the corpus in top-20 PC subspace">
+  <figcaption>Two-component GMM in the top-20 PC subspace, shown on
+    PC1–PC2. Ellipses are two-\(\sigma\) covariance contours;
+    \(\Delta\text{BIC}\) is the two-vs-one component difference.</figcaption>
+</figure>
+
+<h2 id="fig08_tsne_grid">3. t-SNE</h2>
+
+<p>t-SNE encodes each high-D point’s neighbourhood as a
+probability distribution over other points (Gaussian kernel, per-point
+bandwidth chosen to hit a target <em>perplexity</em>) and finds a low-D
+layout whose neighbourhood distributions — defined by a
+heavy-tailed Student’s t kernel — minimise the KL divergence
+to the high-D distributions:</p>
+
+<p style="text-align:center">
+  \( \displaystyle
+     \mathrm{KL}(P \;\|\; Q) \;=\;
+     \sum_{i \neq j} p_{ij} \,\log\!\left(
+        \tfrac{p_{ij}}{q_{ij}} \right).
+  \)
+</p>
+
+<p>The heavy tail on \(Q\) is what buys the "clusters look
+separated" behaviour — far-apart pairs are weakly penalised.
+Perplexity plays the role of an effective neighbourhood size, not a
+cluster count. Global distances in a t-SNE layout are not to scale
+and should not be interpreted as such.</p>
+
+<figure class="paper-fig">
+  <img src="figures/fig08_tsne_grid.png"
+       alt="t-SNE at four perplexities: 5, 30, 100, 300">
+  <figcaption>Same 1,200-chunk stratified sample, same seed, four
+    perplexity settings (5, 30, 100, 300). The two-lobe structure is
+    stable across the perplexity sweep.</figcaption>
+</figure>
+
+<h2 id="fig09_umap_grid">4. UMAP</h2>
+
+<p>UMAP builds a weighted \(k\)-nearest-neighbour graph in high-D
+and finds low-D coordinates whose graph minimises a cross-entropy
+against the high-D one. The two exposed knobs are <code>n_neighbors</code>
+(analogous to perplexity) and <code>min_dist</code> (packing).
+Different objective than t-SNE, different implementation, generally
+better global-structure preservation — useful precisely because
+its failure modes differ.</p>
+
+<figure class="paper-fig">
+  <img src="figures/fig09_umap_grid.png"
+       alt="UMAP at four neighbourhood sizes">
+  <figcaption>UMAP over the same stratified sample at four
+    <code>n_neighbors</code> settings, <code>min_dist</code> fixed.
+    Independently of t-SNE, the same two-lobe topology recurs.</figcaption>
+</figure>
+
+<h2>Synthesis</h2>
+
+<p>Four independent statistical lenses — supervised linear
+discriminant, unsupervised density fit, two nonlinear
+neighbourhood-preserving embeddings — all point at the same
+prose–tabular axis. That is why the split is treated as a
+property of the corpus rather than a property of the plot.</p>
+
+<p style="margin-top:32px"><nav class="sue-nav"><a href="semantic_universe_explorer.html">Interactive viewer</a> <span class="sep">·</span> <a href="sue_walkthru.html">Walk-through</a> <span class="sep">·</span> <a class="current" href="math_and_statistics.html">Math &amp; statistics</a></nav></p>
+</div></body></html>
