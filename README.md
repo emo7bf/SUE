@@ -1,5 +1,7 @@
 # Semantic Universe Explorer — SUE
 
+![SUE viewer demo — rotating 3D projection of 3,685 sustainability-report passages across five semiconductor-equipment firms](docs/animated_gif.gif)
+
 **Reachable pages**
 
 - **[Interactive viewer](https://emo7bf.github.io/SUE/semantic_universe_explorer.html)** — the 3-D / 2-D plot with

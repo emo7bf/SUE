@@ -2486,6 +2486,8 @@ def _render_readme(companies: List[str]) -> str:
 
     return f"""# Semantic Universe Explorer \u2014 SUE
 
+![SUE viewer demo \u2014 rotating 3D projection of 3,685 sustainability-report passages across five semiconductor-equipment firms](docs/animated_gif.gif)
+
 **Reachable pages**
 
 - **[Interactive viewer]({live_viewer})** \u2014 the 3-D / 2-D plot with
