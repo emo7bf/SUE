@@ -107,6 +107,140 @@ _FIGURES_TO_PUBLISH = [
 
 REPO_URL = "https://github.com/emo7bf/SUE"           # placeholder, safe to edit
 
+
+# --------------------- 12 Global-Impact-Report content categories --------
+# Kept in strict sync with paper/fig_report_anatomy.py::_BLOCKS. Each row:
+#   (glyph, title, description, register, keyword_regex, palette_color)
+# register is 'N' (narrative), 'M' (mixed), 'T' (tabular). The palette
+# groups the 12 colors by register so that hovering the viewer's
+# "Content type (12)" color mode instantly reveals which content types
+# are prose-heavy vs. table-heavy.
+_CONTENT_TYPES: List[tuple] = [
+    ("\u2709", "CEO Letter",
+     "Framing, priorities, and tone for the year.", "N",
+     r"(letter (from|to)|message from|dear (stakeholders|shareholders)|chief executive)",
+     "#1f77b4"),
+    ("\u2696", "Materiality Assessment",
+     "Which topics matter to business and stakeholders.", "M",
+     r"material(ity| topic| issue|_?assessment)",
+     "#7e57c2"),
+    ("\u25CF", "Scope 1 Emissions",
+     "Direct emissions from owned facilities.", "T",
+     r"scope[\s\-]?1",
+     "#d62728"),
+    ("\u26A1", "Scope 2 Emissions",
+     "Emissions from purchased electricity and heat.", "T",
+     r"scope[\s\-]?2",
+     "#ff7f0e"),
+    ("\u21C4", "Scope 3 Emissions",
+     "Value-chain emissions (suppliers, use, disposal).", "T",
+     r"scope[\s\-]?3",
+     "#e6550d"),
+    ("\u2248", "Water",
+     "Withdrawal and consumption, often by basin stress.", "T",
+     r"water (withdrawal|consumption|use|stress|risk)|megaliter",
+     "#17becf"),
+    ("\u267B", "Waste & Circularity",
+     "Recycled fractions, hazardous streams, packaging.", "T",
+     r"(waste|circular(ity)?|recycl|landfill|hazardous)",
+     "#8c6d31"),
+    ("\u263B", "Workforce",
+     "Composition, safety, turnover, training hours.", "T",
+     r"(workforce|employee|training hours|turnover|safety (incident|record))",
+     "#e377c2"),
+    ("\u2699", "Supplier Due-Diligence",
+     "Audits and human-rights procedures.", "N",
+     r"(supplier (audit|due diligence|code)|human rights|responsible sourcing|supply chain (audit|risk))",
+     "#4a90d9"),
+    ("\u2691", "Governance",
+     "Board independence, committee structure, ethics.", "N",
+     r"(board of directors|board independence|governance|audit committee|code of ethics)",
+     "#7fb5e3"),
+    ("\u2794", "Forward-Looking Targets",
+     "Dated commitments (\u201Cnet-zero by 2050\u201D etc.).", "M",
+     r"(net[\s\-]?zero|by 20(30|35|40|45|50)|20(30|40|50) (target|goal|commitment)|science[\s\-]based target)",
+     "#b39ddb"),
+    ("\u25A6", "Assurance / Data Tables",
+     "Third-party assurance and machine-readable annexes.", "T",
+     r"(assurance|independent (auditor|assurance)|iso[\s\-]?14064|GRI (index|table)|SASB|TCFD)",
+     "#bcbd22"),
+]
+
+_CT_TITLES     = [row[1] for row in _CONTENT_TYPES]
+_CT_DESCS      = [row[2] for row in _CONTENT_TYPES]
+_CT_REGISTERS  = [row[3] for row in _CONTENT_TYPES]
+_CT_GLYPHS     = [row[0] for row in _CONTENT_TYPES]
+_CT_COLORS     = [row[5] for row in _CONTENT_TYPES]
+_CT_REGEXES    = [re.compile(row[4], re.IGNORECASE) for row in _CONTENT_TYPES]
+
+
+def classify_content_types(df: pd.DataFrame, X: np.ndarray) -> np.ndarray:
+    """Assign each chunk to one of the 12 Global-Impact-Report content
+    categories defined in :data:`_CONTENT_TYPES`.
+
+    Hybrid classifier:
+
+    * Run all 12 regex against each chunk's text.
+    * If exactly one regex matches   \u2192 label = that category (source: regex).
+    * If two or more regex match     \u2192 tie-break by cosine similarity
+      between the chunk's MiniLM embedding and each candidate category's
+      prototype embedding (title + description).
+    * If zero regex match            \u2192 argmax cosine across all 12 (source: embed).
+
+    Returns an ``int8`` array of length ``len(df)`` giving the assigned
+    category index in the range ``[0, 12)``.
+    """
+    n = len(df)
+    labels = np.full(n, -1, dtype=np.int8)
+
+    # ---- pass 1: regex hit counts per chunk ----
+    hits = np.zeros((n, 12), dtype=bool)
+    texts = df["text"].astype(str).to_list()
+    for k, rx in enumerate(_CT_REGEXES):
+        for i, t in enumerate(texts):
+            if rx.search(t):
+                hits[i, k] = True
+    hit_counts = hits.sum(axis=1)
+
+    # single-match rows get labelled outright.
+    single = np.flatnonzero(hit_counts == 1)
+    labels[single] = np.argmax(hits[single], axis=1).astype(np.int8)
+
+    # ---- pass 2: category prototype embeddings (only if needed) ----
+    needs_embed = np.flatnonzero(hit_counts != 1)
+    if len(needs_embed):
+        try:
+            from sentence_transformers import SentenceTransformer  # type: ignore
+        except ImportError as e:
+            print(f"  ! sentence-transformers unavailable ({e}); "
+                  "falling back to first-regex-match for ambiguous rows")
+            # crude fallback: for multi-hit rows take the first hit;
+            # for zero-hit rows leave -1 (viewer will bucket as "Other").
+            for i in needs_embed:
+                if hit_counts[i] >= 2:
+                    labels[i] = int(np.argmax(hits[i]))
+            return labels
+
+        print("  encoding 12 content-type prototypes ...")
+        model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        prototype_texts = [f"{t}. {d}" for t, d in zip(_CT_TITLES, _CT_DESCS)]
+        proto = model.encode(prototype_texts, normalize_embeddings=True)
+        proto = np.asarray(proto, dtype=np.float32)          # (12, 384)
+        # X is expected to be unit-normalised already (that is what the
+        # rest of the pipeline consumes), so a plain dot is cosine.
+        sims = X[needs_embed] @ proto.T                       # (M, 12)
+
+        for j, i in enumerate(needs_embed):
+            if hit_counts[i] >= 2:
+                cand = np.where(hits[i])[0]
+                labels[i] = int(cand[np.argmax(sims[j, cand])])
+            else:  # zero regex matches
+                labels[i] = int(np.argmax(sims[j]))
+
+    # by construction every chunk now has a label in [0, 12).
+    assert (labels >= 0).all(), "classifier left some chunks unlabelled"
+    return labels
+
 TOP_NEIGHBORS = 50           # how many nearest neighbors to precompute per chunk
 TABLE_DIGIT_THRESHOLD = 0.18  # digit-density threshold that names a chunk "tabular"
 
@@ -776,6 +910,22 @@ _HTML = """<!DOCTYPE html>
     <label><input type="radio" name="color" value="cross_corpus_out"> Cross-corpus outlierness (rank)</label>
     <label><input type="radio" name="color" value="doc_typicality"> In-doc typicality</label>
     <label><input type="radio" name="color" value="cluster"> Unsupervised cluster (GMM)</label>
+    <label><input type="radio" name="color" value="content_type"> Content type (12 categories)</label>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35;">
+      In this mode, marker <b>shape</b> encodes company
+      (\u25CF AMAT, \u25C6 ASML, \u25A0 KLA, \u271A Lam, \u2716 TEL).
+    </div>
+  </div>
+
+  <div class="ctrl-group">
+    <h3>Filter \u2014 content category</h3>
+    <select id="content-type-filter" style="width:100%;padding:4px;font-size:12px;">
+      <option value="all">All 12 categories</option>
+    </select>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+      Isolate a single one of the twelve recurring Global-Impact-Report
+      content types (CEO letter, Scope emissions, water, workforce, etc.).
+    </div>
   </div>
 
   <div class="ctrl-group">
@@ -864,6 +1014,7 @@ const COLOR_LEGENDS = {
   cross_corpus_out: '<b>Cross-corpus outlierness (rank)</b>: 0 = typical for the sector, 1 = most outlier.',
   doc_typicality:   '<b>In-doc typicality</b>: darker = further from the center of its own document.',
   cluster:          '<b>Unsupervised cluster (GMM)</b>: 2-way Gaussian mixture fit on the top 20 principal components.',
+  content_type:     '<b>Content type (12 GIR categories)</b>: color = category (blue \u2248 narrative, purple \u2248 mixed, orange/red/teal \u2248 tabular); marker <b>shape</b> = company.',
 };
 function updateColorLegend() {
   const el = document.getElementById('color-legend');
@@ -883,6 +1034,7 @@ let state = {
   companyOn: {},   // company name -> true/false; initialized below
   outliersOnly: false,
   outliersPct: 15,
+  contentTypeFilter: 'all',   // 'all' or one of DATA.content_type_labels
 };
 
 // ---------- helpers ----------
@@ -930,8 +1082,27 @@ function colorValues(mode) {
     return { values: vals, type: 'categorical', title: 'Unsupervised cluster',
              levels: seen };
   }
+  if (mode === 'content_type') {
+    // Custom categorical branch: each chunk is one of 12 content
+    // categories (see _CONTENT_TYPES on the Python side). The palette
+    // is fixed per category, not looked up by level index, so we ship
+    // a dedicated .colorFor() lookup rather than the default palette().
+    const labels = DATA.content_type_labels;
+    const vals = DATA.content_type_of.map(k => labels[k]);
+    const colorFor = (lvl) => DATA.content_type_colors[labels.indexOf(lvl)] || '#888';
+    return { values: vals, type: 'categorical',
+             title: 'Content type (12 GIR categories)',
+             levels: labels.slice(),   // preserve canonical order
+             colorFor };
+  }
   return { values: [], type: 'categorical', title: '', levels: [] };
 }
+
+// Marker symbols keyed by company index for the "content_type" color
+// mode: color encodes category, shape encodes company. Order matches
+// DATA.companies (alphabetised at build time: AMAT, ASML, KLA, Lam, TEL).
+const COMPANY_SYMBOLS_3D = ['circle', 'diamond', 'square', 'cross', 'x'];
+const COMPANY_SYMBOLS_2D = ['circle', 'diamond', 'square', 'cross', 'x'];
 
 function palette(i) { return DATA.palette[i % DATA.palette.length]; }
 
@@ -945,9 +1116,14 @@ function hoverTextFor(idx) {
   const c = DATA.chunks[idx];
   const snip = c.text.slice(0, 200).replace(/\\n/g, ' ');
   const dd = (DATA.digit_density[idx] * 100).toFixed(1);
+  const ctK = (DATA.content_type_of || [])[idx];
+  const ctLabel = (typeof ctK === 'number' && DATA.content_type_labels)
+    ? (DATA.content_type_glyphs[ctK] || '') + ' ' + DATA.content_type_labels[ctK]
+    : '';
   s = `<b>${escapeHtml(c.company)}</b><br>`
     + `${escapeHtml(c.doc)} \u00b7 chunk ${c.chunk_id}`
     + ` \u00b7 digits ${dd}%<br>`
+    + (ctLabel ? `<i>${escapeHtml(ctLabel)}</i><br>` : '')
     + `${escapeHtml(snip)}\u2026`;
   _hoverCache[idx] = s;
   return s;
@@ -972,6 +1148,11 @@ function passesFilters(i) {
   if (state.outliersOnly) {
     const cutoff = DATA.outlier_cutoffs[state.outliersPct - 1];
     if (DATA.dist_from_others[i] < cutoff) return false;
+  }
+  // 12-category content-type filter
+  if (state.contentTypeFilter !== 'all') {
+    const lbl = DATA.content_type_labels[DATA.content_type_of[i]];
+    if (lbl !== state.contentTypeFilter) return false;
   }
   return true;
 }
@@ -1015,15 +1196,21 @@ function buildTraces() {
   const traces = [];
 
   if (c.type === 'categorical') {
-    for (const lvl of c.levels) {
+    const isContentType = state.color === 'content_type';
+    const symbols = is3d ? COMPANY_SYMBOLS_3D : COMPANY_SYMBOLS_2D;
+    const colorForLevel = (lvl, k) =>
+      (typeof c.colorFor === 'function') ? c.colorFor(lvl) : palette(k);
+
+    for (let k = 0; k < c.levels.length; k++) {
+      const lvl = c.levels[k];
       const idx = [];
       for (let i = 0; i < c.values.length; i++) {
         if (c.values[i] === lvl && visible[i]) idx.push(i);
       }
       if (idx.length === 0) continue;
+      const col = colorForLevel(lvl, k);
       const dimIdx = dimming ? idx.filter(i => !spotlight.has(i)) : [];
       const brightIdx = dimming ? idx.filter(i => spotlight.has(i)) : idx;
-      const col = palette(c.levels.indexOf(lvl));
 
       if (dimIdx.length) {
         traces.push(_scatterTrace(dimIdx, coords, is3d, {
@@ -1032,10 +1219,46 @@ function buildTraces() {
         }));
       }
       if (brightIdx.length) {
-        traces.push(_scatterTrace(brightIdx, coords, is3d, {
-          color: col, size: 3.4, opacity: dimming ? 0.95 : 0.75,
-          name: lvl, showlegend: true,
-        }));
+        if (isContentType) {
+          // Sub-partition this category's indices by company so each
+          // (category, company) pair can carry its own marker symbol.
+          // Only the first sub-trace shows in the legend so the legend
+          // stays a clean 12-entry list, not 60.
+          const byCompany = symbols.map(() => []);
+          for (const i of brightIdx) byCompany[DATA.company_of[i]].push(i);
+          let firstSub = true;
+          for (let ci = 0; ci < byCompany.length; ci++) {
+            const sub = byCompany[ci];
+            if (!sub.length) continue;
+            traces.push(_scatterTrace(sub, coords, is3d, {
+              color: col, size: 3.6, opacity: dimming ? 0.95 : 0.78,
+              name: lvl, showlegend: firstSub, symbol: symbols[ci],
+            }));
+            firstSub = false;
+          }
+        } else {
+          traces.push(_scatterTrace(brightIdx, coords, is3d, {
+            color: col, size: 3.4, opacity: dimming ? 0.95 : 0.75,
+            name: lvl, showlegend: true,
+          }));
+        }
+      }
+    }
+
+    // Phantom traces (one per company) to surface the shape\u2194company
+    // mapping in the Plotly legend when content_type mode is active.
+    if (isContentType) {
+      for (let ci = 0; ci < DATA.companies.length; ci++) {
+        traces.push({
+          type: is3d ? 'scatter3d' : 'scattergl',
+          x: [null], y: [null], ...(is3d ? {z: [null]} : {}),
+          mode: 'markers',
+          marker: {size: is3d ? 5 : 8, color: '#555',
+                   symbol: symbols[ci], line: {width: 0}},
+          name: DATA.companies[ci],
+          legendgroup: 'company-shape',
+          showlegend: true, hoverinfo: 'skip',
+        });
       }
     }
   } else {
@@ -1111,14 +1334,16 @@ function buildTraces() {
 }
 
 function _scatterTrace(idx, coords, is3d, opts) {
+  const marker = {size: is3d ? opts.size : opts.size * 1.7,
+                  color: opts.color, opacity: opts.opacity, line: {width: 0}};
+  if (opts.symbol) marker.symbol = opts.symbol;
   const base = {
     type: is3d ? 'scatter3d' : 'scattergl',
     x: idx.map(i => coords[i][0]),
     y: idx.map(i => coords[i][1]),
     ...(is3d ? {z: idx.map(i => coords[i][2])} : {}),
     mode: 'markers',
-    marker: {size: is3d ? opts.size : opts.size * 1.7,
-             color: opts.color, opacity: opts.opacity, line: {width: 0}},
+    marker,
     customdata: idx,
     name: opts.name, showlegend: opts.showlegend,
     legendgroup: opts.name,
@@ -1190,6 +1415,7 @@ function snapshot() {
     companyOn: Object.assign({}, state.companyOn),
     outliersOnly: state.outliersOnly,
     outliersPct: state.outliersPct,
+    contentTypeFilter: state.contentTypeFilter,
   };
 }
 
@@ -1211,6 +1437,7 @@ function applySnapshot(s) {
   state.companyOn = Object.assign({}, s.companyOn);
   state.outliersOnly = s.outliersOnly;
   state.outliersPct = s.outliersPct;
+  state.contentTypeFilter = (s.contentTypeFilter !== undefined) ? s.contentTypeFilter : 'all';
 
   // Re-sync every UI control so it reflects the restored state.
   const vRadio  = document.querySelector('input[name=view][value="'    + state.view    + '"]');
@@ -1234,6 +1461,8 @@ function applySnapshot(s) {
   document.querySelectorAll('.co-cb').forEach(cb => {
     cb.checked = !!state.companyOn[cb.dataset.co];
   });
+  const ctSel = document.getElementById('content-type-filter');
+  if (ctSel) ctSel.value = state.contentTypeFilter;
   // Exhibit "active" underline follows current selection.
   document.querySelectorAll('.exhibit').forEach(n => {
     const isSelected = parseInt(n.dataset.idx, 10) === state.selection;
@@ -1592,6 +1821,25 @@ function renderCompanyFilters() {
     });
   });
 }
+
+// content-category dropdown: populated once from DATA.content_type_labels.
+(function initContentTypeFilter() {
+  const sel = document.getElementById('content-type-filter');
+  if (!sel) return;
+  const labels = DATA.content_type_labels || [];
+  const glyphs = DATA.content_type_glyphs || [];
+  for (let k = 0; k < labels.length; k++) {
+    const opt = document.createElement('option');
+    opt.value = labels[k];
+    opt.textContent = (glyphs[k] ? glyphs[k] + '  ' : '') + labels[k];
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', (e) => {
+    pushHistory();
+    state.contentTypeFilter = e.target.value;
+    redraw();
+  });
+})();
 
 // outliers-only toggle + percentile slider
 document.getElementById('outliers-only').addEventListener('change', (e) => {
@@ -2413,6 +2661,12 @@ def main():
     print("Fitting 2-component GMM on top-20 PCA subspace ...")
     cluster = gmm_cluster_labels(X)
 
+    print("Classifying chunks into 12 content categories (hybrid regex + embedding) ...")
+    content_type_of = classify_content_types(df, X)
+    _ct_counts = np.bincount(content_type_of.astype(np.int64), minlength=12)
+    for k, name in enumerate(_CT_TITLES):
+        print(f"    {k:2d} {name:<26} {int(_ct_counts[k]):>5d} chunks")
+
     print(f"Precomputing top-{TOP_NEIGHBORS} nearest neighbors (may take a bit) ...")
     nbrs = top_neighbors(X, TOP_NEIGHBORS)
 
@@ -2497,6 +2751,12 @@ def main():
         "neighbors": nbrs.tolist(),
         "exhibits": exhibits,
         "palette": _PALETTE,
+        # 12-category "content type" classification (see _CONTENT_TYPES)
+        "content_type_of":       content_type_of.astype(int).tolist(),
+        "content_type_labels":   _CT_TITLES,
+        "content_type_glyphs":   _CT_GLYPHS,
+        "content_type_colors":   _CT_COLORS,
+        "content_type_registers": _CT_REGISTERS,
     }
     data_json = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
