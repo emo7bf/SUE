@@ -2,17 +2,12 @@
 
 ![SUE viewer demo — rotating 3D projection of 3,685 sustainability-report passages across five semiconductor-equipment firms](docs/animated_gif.gif)
 
-**Reachable pages**
+**Links**
 
-- **[Interactive viewer](https://emo7bf.github.io/SUE/semantic_universe_explorer.html)** — the 3-D / 2-D plot with
-  every chunk clickable
-- **[Walk-through](https://emo7bf.github.io/SUE/sue_walkthru.html)** — what the colour modes mean
-  and where each firm sits along the prose–tabular axis
-- **[Math & statistics](https://emo7bf.github.io/SUE/math_and_statistics.html)** — LDA, GMM, t-SNE, UMAP with
-  every variable defined
+- **[Interactive viewer](https://emo7bf.github.io/SUE/semantic_universe_explorer.html)** 
+- **[Walk-through](https://emo7bf.github.io/SUE/sue_walkthru.html)** 
+- **[Math & statistics](https://emo7bf.github.io/SUE/math_and_statistics.html)** 
 
-> If you are reading this on GitHub, the **[full walk-through page](https://emo7bf.github.io/SUE/sue_walkthru.html)**
-> renders the math and figures that Markdown cannot.
 
 ---
 
