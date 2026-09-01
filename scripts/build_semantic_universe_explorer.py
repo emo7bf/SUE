@@ -972,6 +972,38 @@ _HTML = """<!DOCTYPE html>
   </div>
 
   <div class="ctrl-group">
+    <h3>Projection</h3>
+    <label><input type="radio" name="projection" value="pca" checked> PCA</label>
+    <label><input type="radio" name="projection" value="tsne"> t-SNE
+      <select id="tsne-p" style="font-size:12px;">
+        <option value="30" selected>perplexity 30</option>
+        <option value="100">perplexity 100</option>
+      </select></label>
+    <label><input type="radio" name="projection" value="umap"> UMAP
+      <select id="umap-n" style="font-size:12px;">
+        <option value="15" selected>n_neighbors 15</option>
+        <option value="50">n_neighbors 50</option>
+      </select></label>
+    <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.35;">
+      All four settings side-by-side:
+      <a href="tsne_umap_viewer.html">t-SNE / UMAP grid</a>.
+    </div>
+    <button id="reproject-btn" class="sel-btn" type="button"
+      style="margin-top:8px;width:100%;"
+      title="Fit fresh PCA axes to only the currently visible points, so the filtered subset gets the whole plot to itself">
+      \u21BB Re-project visible points</button>
+    <button id="reproject-reset" class="sel-btn" type="button"
+      style="margin-top:4px;width:100%;display:none;">
+      Back to full-corpus axes</button>
+    <div id="reproject-note" style="font-size:11px;color:var(--muted);
+      margin-top:4px;line-height:1.35;">
+      Filter first (category, company, digits\u2026), then re-project: the
+      visible subset is treated as the whole dataset and gets its own
+      best-fit axes.
+    </div>
+  </div>
+
+  <div class="ctrl-group">
     <h3>Color by</h3>
     <label><input type="radio" name="color" value="content_type" checked> Content type (12 categories)</label>
     <label><input type="radio" name="color" value="company"> Company</label>
@@ -1048,8 +1080,20 @@ _HTML = """<!DOCTYPE html>
   </div>
 </aside>
 
-<main class="viz">
+<main class="viz" style="position:relative;">
   <div id="plot"></div>
+  <!-- Faithfulness badge: how much of the full 384-D structure the
+       current picture actually shows. Updated on every projection
+       change and every re-projection. -->
+  <div id="faith-badge" style="position:absolute;top:8px;right:14px;
+       z-index:20;background:var(--panel);border:1px solid var(--border);
+       border-radius:999px;padding:4px 12px;font-size:11.5px;
+       color:var(--muted);box-shadow:0 2px 6px rgba(0,0,0,.06);">
+    <span id="faith-text">faithfulness: computing\u2026</span>
+    <button id="faith-info" type="button" title="What do these numbers mean?"
+      style="border:none;background:none;color:var(--learn);cursor:pointer;
+      font-size:12px;padding:0 0 0 4px;">\u24D8</button>
+  </div>
   <!-- Persistent legend/hint that reads out what the current color
        scale means. Kept below the plot (bottom-center) so it's visible
        whichever color mode is active, without cluttering the sidebar. -->
@@ -1103,6 +1147,10 @@ function updateColorLegend() {
 let state = {
   view: '3d',
   color: 'content_type',
+  projection: 'pca',     // 'pca' | 'tsne' | 'umap'
+  tsneP: '30',           // flagship carries two settings per method
+  umapN: '15',
+  reproj: null,          // {Z3, Z2, r3, r2, n, varShare} after "re-project"
   selection: null,       // index into DATA.chunks
   K: 15,
   dimOthers: true,
@@ -1244,10 +1292,35 @@ function escapeHtml(s) {
 }
 
 // ---------- plot builders ----------
+// Resolve which coordinate set the plot is currently showing: a client-
+// side re-projection wins, then t-SNE/UMAP, then the default PCA.
+function currentCoords() {
+  const is3d = state.view === '3d';
+  if (state.reproj) {
+    return { coords: is3d ? state.reproj.Z3 : state.reproj.Z2,
+             range: is3d ? state.reproj.r3 : state.reproj.r2, kind: 'reproj' };
+  }
+  if (state.projection === 'pca') {
+    return { coords: is3d ? DATA.coords_3d : DATA.coords_2d,
+             range: is3d ? DATA.coord_range_3d : DATA.coord_range_2d,
+             kind: 'pca' };
+  }
+  const key = (state.projection === 'tsne' ? `tsne_p${state.tsneP}`
+                                           : `umap_n${state.umapN}`)
+              + (is3d ? '_d3' : '_d2');
+  if (DATA.alt && DATA.alt[key]) {
+    return { coords: DATA.alt[key], range: DATA.alt_ranges[key],
+             kind: state.projection };
+  }
+  return { coords: is3d ? DATA.coords_3d : DATA.coords_2d,
+           range: is3d ? DATA.coord_range_3d : DATA.coord_range_2d,
+           kind: 'pca' };
+}
+
 function buildTraces() {
   const c = colorValues(state.color);
   const is3d = state.view === '3d';
-  const coords = is3d ? DATA.coords_3d : DATA.coords_2d;
+  const coords = currentCoords().coords;
 
   // spotlight mask (always includes the selected chunk itself so it can
   // still be located even when filters would otherwise hide it)
@@ -1489,34 +1562,35 @@ function _scatterTrace(idx, coords, is3d, opts) {
 
 function buildLayout() {
   const is3d = state.view === '3d';
+  const cc = currentCoords();
   const ev = DATA.explained_variance;
+  const names = (cc.kind === 'pca')
+    ? [0, 1, 2].map(k => `PC ${k + 1} (${(ev[k] * 100).toFixed(1)}%)`)
+    : (cc.kind === 'reproj')
+      ? [0, 1, 2].map(k => `subset PC ${k + 1}`)
+      : [0, 1, 2].map(k => `${cc.kind === 'tsne' ? 't-SNE' : 'UMAP'} dim ${k + 1}`);
   const base = {
     autosize: true, height: 640,
     margin: {l: 0, r: 0, t: 30, b: 0},
     hovermode: 'closest',
     legend: {itemsizing: 'constant', font: {size: 10}, y: 0.98},
     title: {text: '', font: {size: 12}},
-    uirevision: 'keep',   // preserve camera/zoom across react()
+    uirevision: cc.kind + (state.reproj ? '-sub' : ''),  // keep camera per lens
   };
-  const r3 = DATA.coord_range_3d;
-  const r2 = DATA.coord_range_2d;
+  const r = cc.range;
   if (is3d) {
     return { ...base, scene: {
-      xaxis: {title: `PC 1 (${(ev[0]*100).toFixed(1)}%)`,
-              range: [-r3, r3], backgroundcolor: '#fbfbfd'},
-      yaxis: {title: `PC 2 (${(ev[1]*100).toFixed(1)}%)`,
-              range: [-r3, r3], backgroundcolor: '#fbfbfd'},
-      zaxis: {title: `PC 3 (${(ev[2]*100).toFixed(1)}%)`,
-              range: [-r3, r3], backgroundcolor: '#fbfbfd'},
+      xaxis: {title: names[0], range: [-r, r], backgroundcolor: '#fbfbfd'},
+      yaxis: {title: names[1], range: [-r, r], backgroundcolor: '#fbfbfd'},
+      zaxis: {title: names[2], range: [-r, r], backgroundcolor: '#fbfbfd'},
       aspectmode: 'cube',
       camera: {eye: {x: 1.6, y: 1.6, z: 0.9}},
     }};
   }
   return { ...base,
-    xaxis: {title: `PC 1 (${(ev[0]*100).toFixed(1)}%)`,
-            range: [-r2, r2], zeroline: false},
-    yaxis: {title: `PC 2 (${(ev[1]*100).toFixed(1)}%)`,
-            range: [-r2, r2], zeroline: false, scaleanchor: 'x', scaleratio: 1},
+    xaxis: {title: names[0], range: [-r, r], zeroline: false},
+    yaxis: {title: names[1], range: [-r, r], zeroline: false,
+            scaleanchor: 'x', scaleratio: 1},
   };
 }
 
@@ -1545,7 +1619,7 @@ function _renderFull() {
 function _renderSelectionOnly() {
   const gd = document.getElementById('plot');
   const is3d = state.view === '3d';
-  const coords = is3d ? DATA.coords_3d : DATA.coords_2d;
+  const coords = currentCoords().coords;
   // 1) drop any existing spotlight overlay
   if (_spotlightCount > 0) {
     const drop = [];
@@ -1583,7 +1657,10 @@ function _scheduleRender(mode) {
   }
 }
 
-function redraw() { _scheduleRender(2); }          // full rebuild
+function redraw() {
+  _scheduleRender(2);                              // full rebuild
+  if (typeof scheduleFaithfulness === 'function') scheduleFaithfulness();
+}
 function redrawSelection() { _scheduleRender(1); } // spotlight only
 
 // ---------- selection / inspector ----------
@@ -1597,6 +1674,10 @@ function snapshot() {
   return {
     view: state.view,
     color: state.color,
+    projection: state.projection,
+    tsneP: state.tsneP,
+    umapN: state.umapN,
+    reproj: state.reproj,      // shared reference; arrays are immutable
     selection: state.selection,
     K: state.K,
     dimOthers: state.dimOthers,
@@ -1620,6 +1701,10 @@ function pushHistory() {
 function applySnapshot(s) {
   state.view = s.view;
   state.color = s.color;
+  state.projection = s.projection || 'pca';
+  state.tsneP = s.tsneP || '30';
+  state.umapN = s.umapN || '15';
+  state.reproj = s.reproj || null;
   state.selection = s.selection;
   state.K = s.K;
   state.dimOthers = s.dimOthers;
@@ -1636,9 +1721,17 @@ function applySnapshot(s) {
   const vRadio  = document.querySelector('input[name=view][value="'    + state.view    + '"]');
   const cRadio  = document.querySelector('input[name=color][value="'   + state.color   + '"]');
   const ctRadio = document.querySelector('input[name=content][value="' + state.content + '"]');
+  const pRadio  = document.querySelector('input[name=projection][value="' + state.projection + '"]');
   if (vRadio)  vRadio.checked  = true;
   if (cRadio)  cRadio.checked  = true;
   if (ctRadio) ctRadio.checked = true;
+  if (pRadio)  pRadio.checked  = true;
+  const tp = document.getElementById('tsne-p');
+  const un = document.getElementById('umap-n');
+  if (tp) tp.value = state.tsneP;
+  if (un) un.value = state.umapN;
+  syncReprojectButtons();
+  scheduleFaithfulness();
   const setEl = (id, prop, val) => {
     const el = document.getElementById(id);
     if (el) el[prop] = val;
@@ -2089,6 +2182,250 @@ plotEl.on('plotly_click', (e) => {
   }
 });
 
+// ---------- client-side embeddings, re-projection, faithfulness ----------
+// The payload ships int8-quantized copies of the 384-D embeddings, which
+// is enough numerical precision to (a) re-fit a PCA on any visible
+// subset in the browser and (b) score how faithful the current picture
+// is (variance share + Shepard correlation on sampled pairs).
+let _EMB = null;   // Float32Array of length N*D, lazily decoded
+function getEmb() {
+  if (_EMB) return _EMB;
+  const bin = atob(DATA.emb_b64);
+  const D = DATA.emb_dim, N = DATA.chunks.length;
+  const q = new Int8Array(N * D);
+  for (let i = 0; i < bin.length; i++) q[i] = (bin.charCodeAt(i) << 24) >> 24;
+  _EMB = new Float32Array(N * D);
+  const s = DATA.emb_scale;
+  for (let i = 0; i < q.length; i++) _EMB[i] = q[i] * s;
+  return _EMB;
+}
+
+// Top-k PCA of the rows listed in `subset` via simultaneous power
+// iteration on the (implicit) covariance; returns projections for ALL
+// rows onto the subset-fit axes plus the variance share captured.
+function fitSubsetPCA(subset, k) {
+  const E = getEmb(), D = DATA.emb_dim, N = DATA.chunks.length;
+  const n = subset.length;
+  const mean = new Float64Array(D);
+  for (const i of subset) {
+    const o = i * D;
+    for (let d = 0; d < D; d++) mean[d] += E[o + d];
+  }
+  for (let d = 0; d < D; d++) mean[d] /= n;
+  let totVar = 0;
+  for (const i of subset) {
+    const o = i * D;
+    for (let d = 0; d < D; d++) { const v = E[o + d] - mean[d]; totVar += v * v; }
+  }
+  totVar /= n;
+  // orthonormal random start
+  let V = [];
+  for (let j = 0; j < k; j++) {
+    const v = new Float64Array(D);
+    for (let d = 0; d < D; d++) v[d] = Math.sin(97 * j + d * 0.719) + 1e-3 * j;
+    V.push(v);
+  }
+  const covTimes = (v) => {
+    const out = new Float64Array(D);
+    for (const i of subset) {
+      const o = i * D;
+      let dot = 0;
+      for (let d = 0; d < D; d++) dot += (E[o + d] - mean[d]) * v[d];
+      for (let d = 0; d < D; d++) out[d] += dot * (E[o + d] - mean[d]);
+    }
+    for (let d = 0; d < D; d++) out[d] /= n;
+    return out;
+  };
+  const gramSchmidt = () => {
+    for (let j = 0; j < k; j++) {
+      for (let m = 0; m < j; m++) {
+        let dot = 0;
+        for (let d = 0; d < D; d++) dot += V[j][d] * V[m][d];
+        for (let d = 0; d < D; d++) V[j][d] -= dot * V[m][d];
+      }
+      let nrm = 0;
+      for (let d = 0; d < D; d++) nrm += V[j][d] * V[j][d];
+      nrm = Math.sqrt(nrm) || 1;
+      for (let d = 0; d < D; d++) V[j][d] /= nrm;
+    }
+  };
+  gramSchmidt();
+  const ITERS = 24;
+  for (let t = 0; t < ITERS; t++) {
+    V = V.map(covTimes);
+    gramSchmidt();
+  }
+  const eig = V.map(v => {
+    const cv = covTimes(v);
+    let dot = 0;
+    for (let d = 0; d < D; d++) dot += v[d] * cv[d];
+    return dot;
+  });
+  // project EVERY row (hidden points keep valid coords for the spotlight)
+  const Z = [];
+  for (let i = 0; i < N; i++) {
+    const o = i * D, row = [];
+    for (let j = 0; j < k; j++) {
+      let dot = 0;
+      for (let d = 0; d < D; d++) dot += (E[o + d] - mean[d]) * V[j][d];
+      row.push(Math.round(dot * 1e4) / 1e4);
+    }
+    Z.push(row);
+  }
+  const varShare = eig.reduce((a, b) => a + b, 0) / (totVar || 1);
+  return { Z, eig, totVar, varShare };
+}
+
+function rangeOf(Z, subset, dims) {
+  let vals = [];
+  for (const i of subset) for (let d = 0; d < dims; d++) vals.push(Math.abs(Z[i][d]));
+  vals.sort((a, b) => a - b);
+  return (vals[Math.floor(vals.length * 0.995)] || 1) * 1.15;
+}
+
+// Shepard correlation: Pearson r between true 384-D distances and
+// plotted distances over randomly sampled visible pairs.
+function shepardR(coords, subset, nPairs) {
+  const E = getEmb(), D = DATA.emb_dim;
+  const n = subset.length;
+  if (n < 10) return NaN;
+  let xs = [], ys = [];
+  let seed = 12345;
+  const rand = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  for (let p = 0; p < nPairs; p++) {
+    const a = subset[Math.floor(rand() * n)], b = subset[Math.floor(rand() * n)];
+    if (a === b) continue;
+    const oa = a * D, ob = b * D;
+    let dt = 0;
+    for (let d = 0; d < D; d++) { const v = E[oa + d] - E[ob + d]; dt += v * v; }
+    let dp = 0;
+    for (let d = 0; d < coords[a].length; d++) {
+      const v = coords[a][d] - coords[b][d]; dp += v * v;
+    }
+    xs.push(Math.sqrt(dt)); ys.push(Math.sqrt(dp));
+  }
+  const m = xs.length;
+  const mx = xs.reduce((a, b) => a + b, 0) / m, my = ys.reduce((a, b) => a + b, 0) / m;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < m; i++) {
+    const dx = xs[i] - mx, dy = ys[i] - my;
+    sxy += dx * dy; sxx += dx * dx; syy += dy * dy;
+  }
+  return sxy / Math.sqrt((sxx * syy) || 1);
+}
+
+function visibleSubset() {
+  const out = [];
+  for (let i = 0; i < DATA.chunks.length; i++) if (passesFilters(i)) out.push(i);
+  return out;
+}
+
+// badge update, debounced and off the interaction path
+let _faithTimer = null;
+function scheduleFaithfulness() {
+  const el = document.getElementById('faith-text');
+  if (!el) return;
+  el.textContent = 'faithfulness: computing\u2026';
+  clearTimeout(_faithTimer);
+  _faithTimer = setTimeout(() => {
+    try {
+      const cc = currentCoords();
+      const sub = visibleSubset();
+      const r = shepardR(cc.coords, sub, 1500);
+      let varTxt = '';
+      if (cc.kind === 'pca') {
+        const ev = DATA.explained_variance;
+        const dims = state.view === '3d' ? 3 : 2;
+        const share = ev.slice(0, dims).reduce((a, b) => a + b, 0);
+        varTxt = `${(share * 100).toFixed(0)}% of variance \u00b7 `;
+      } else if (cc.kind === 'reproj' && state.reproj) {
+        varTxt = `${(state.reproj.varShare * 100).toFixed(0)}% of subset variance \u00b7 `;
+      }
+      el.textContent = `this picture shows ${varTxt}Shepard r = ${
+        isNaN(r) ? '\u2014' : r.toFixed(2)}`;
+    } catch (e) {
+      el.textContent = 'faithfulness: unavailable';
+    }
+  }, 250);
+}
+
+// ---------- projection controls + re-projection ----------
+function clearReproj() { state.reproj = null; syncReprojectButtons(); }
+
+function syncReprojectButtons() {
+  const btn = document.getElementById('reproject-btn');
+  const rst = document.getElementById('reproject-reset');
+  const note = document.getElementById('reproject-note');
+  if (!btn) return;
+  if (state.reproj) {
+    rst.style.display = '';
+    note.innerHTML = `Showing a fresh best-fit projection of the
+      <b>${state.reproj.n}</b> visible points \u2014 this subset is currently
+      treated as the whole dataset.`;
+  } else {
+    rst.style.display = 'none';
+    note.innerHTML = `Filter first (category, company, digits\u2026), then
+      re-project: the visible subset is treated as the whole dataset and
+      gets its own best-fit axes.`;
+  }
+}
+
+document.querySelectorAll('input[name=projection]').forEach(el => {
+  el.addEventListener('change', () => {
+    pushHistory();
+    state.projection = document.querySelector('input[name=projection]:checked').value;
+    clearReproj();
+    redraw();
+    scheduleFaithfulness();
+  });
+});
+document.getElementById('tsne-p').addEventListener('change', (e) => {
+  state.tsneP = e.target.value;
+  if (state.projection === 'tsne') { pushHistory(); clearReproj(); redraw(); scheduleFaithfulness(); }
+});
+document.getElementById('umap-n').addEventListener('change', (e) => {
+  state.umapN = e.target.value;
+  if (state.projection === 'umap') { pushHistory(); clearReproj(); redraw(); scheduleFaithfulness(); }
+});
+
+document.getElementById('reproject-btn').addEventListener('click', () => {
+  const sub = visibleSubset();
+  if (sub.length < 12) {
+    document.getElementById('reproject-note').innerHTML =
+      '<b>Too few visible points</b> \u2014 loosen the filters a little first.';
+    return;
+  }
+  const btn = document.getElementById('reproject-btn');
+  btn.disabled = true; btn.textContent = 'Fitting axes\u2026';
+  setTimeout(() => {           // let the label paint before the crunch
+    try {
+      const fit = fitSubsetPCA(sub, 3);
+      const Z3 = fit.Z;
+      const Z2 = fit.Z.map(r => [r[0], r[1]]);
+      pushHistory();
+      state.reproj = {
+        Z3, Z2, n: sub.length, varShare: fit.varShare,
+        r3: rangeOf(Z3, sub, 3), r2: rangeOf(Z2, sub, 2),
+      };
+      syncReprojectButtons();
+      redraw();
+      scheduleFaithfulness();
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '\u21BB Re-project visible points';
+    }
+  }, 30);
+});
+document.getElementById('reproject-reset').addEventListener('click', () => {
+  pushHistory();
+  clearReproj();
+  redraw();
+  scheduleFaithfulness();
+});
+document.getElementById('faith-info').addEventListener('click', () => {
+  openLearnAt(LEARN_CARDS.length - 1);   // the Shepard card
+});
+
 // ---------- learning cards ----------
 // A small guided introduction the reader pages through with click, Tab,
 // or arrow keys. Card 3 carries a live geometric demonstration: five
@@ -2151,6 +2488,23 @@ const LEARN_CARDS = [
       side-by-side of a passage and its closest company across the whole
       corpus.</p>`,
   },
+  {
+    title: 'Reading the faithfulness badge',
+    body: `
+      <p>The badge in the plot\u2019s corner scores the current picture two
+      ways: the share of the corpus\u2019s <b>variance</b> the visible axes
+      capture, and the <b>Shepard correlation</b> \u2014 for sampled pairs of
+      passages, how strongly their true 384-dimensional distances agree
+      with their distances on screen (1.0 = the picture never lies about
+      a pair; 0 = the layout is unrelated to the true geometry).</p>
+      <svg class="proj-demo" id="shepard-demo" width="480" height="210"
+           viewBox="0 0 480 210"></svg>
+      <p style="font-size:13px;color:var(--muted)">Each dot is one pair of
+      passages: across = true distance, up = distance in the picture. The
+      tighter the cloud hugs the diagonal, the more honest the projection
+      \u2014 and the badge updates every time you change lenses or
+      re-project a subset.</p>`,
+  },
 ];
 
 let learnIdx = 0;
@@ -2178,6 +2532,7 @@ function renderLearnCard() {
   });
   if (_projDemoRAF) { cancelAnimationFrame(_projDemoRAF); _projDemoRAF = null; }
   if (document.getElementById('proj-demo')) startProjDemo();
+  if (document.getElementById('shepard-demo')) startShepardDemo();
   learnCard.focus();
 }
 
@@ -2187,6 +2542,11 @@ function learnStep(d) {
 }
 function openLearn() {
   learnIdx = 0;
+  learnOverlay.classList.remove('hidden');
+  renderLearnCard();
+}
+function openLearnAt(idx) {
+  learnIdx = Math.max(0, Math.min(LEARN_CARDS.length - 1, idx));
   learnOverlay.classList.remove('hidden');
   renderLearnCard();
 }
@@ -2260,6 +2620,53 @@ function startProjDemo() {
   _projDemoRAF = requestAnimationFrame(frame);
 }
 
+// the Shepard scatter on the faithfulness card: pairs accumulate around
+// the diagonal, with a running correlation readout
+function startShepardDemo() {
+  const svg = document.getElementById('shepard-demo');
+  const x0 = 56, y0 = 178, w = 360, h = 150;
+  svg.innerHTML = `
+    <line x1="${x0}" y1="${y0}" x2="${x0 + w}" y2="${y0}" stroke="#b9b0a2"/>
+    <line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y0 - h}" stroke="#b9b0a2"/>
+    <line x1="${x0}" y1="${y0}" x2="${x0 + w}" y2="${y0 - h}"
+      stroke="#8ca252" stroke-width="1.3" stroke-dasharray="6 4"/>
+    <text x="${x0 + w / 2}" y="${y0 + 22}" font-size="11" text-anchor="middle"
+      fill="#6b6b76">true distance (384-D)</text>
+    <text x="16" y="${y0 - h / 2}" font-size="11" fill="#6b6b76"
+      transform="rotate(-90 16 ${y0 - h / 2})">distance in the picture</text>
+    <text id="shd-r" x="${x0 + w}" y="${y0 - h - 4}" font-size="12"
+      text-anchor="end" fill="#5b4b8a"></text>
+    <g id="shd-dots"></g>`;
+  const dots = svg.querySelector('#shd-dots');
+  const rlbl = svg.querySelector('#shd-r');
+  let seed = 7, xs = [], ys = [], count = 0;
+  const rand = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  function frame() {
+    if (!document.getElementById('shepard-demo')) return;   // card left
+    if (count < 90) {
+      for (let j = 0; j < 2 && count < 90; j++, count++) {
+        const t = rand();                              // true distance 0..1
+        const noise = (rand() - 0.5) * 0.42 * (0.35 + t);
+        const p = Math.max(0.02, Math.min(0.98, t + noise));
+        xs.push(t); ys.push(p);
+        dots.insertAdjacentHTML('beforeend',
+          `<circle cx="${x0 + t * w}" cy="${y0 - p * h}" r="3.4"
+             fill="#a45a1e" opacity="0.55"/>`);
+      }
+      const m = xs.length;
+      const mx = xs.reduce((a, b) => a + b) / m, my = ys.reduce((a, b) => a + b) / m;
+      let sxy = 0, sxx = 0, syy = 0;
+      for (let i = 0; i < m; i++) {
+        const dx = xs[i] - mx, dy = ys[i] - my;
+        sxy += dx * dy; sxx += dx * dx; syy += dy * dy;
+      }
+      rlbl.textContent = `Shepard r = ${(sxy / Math.sqrt(sxx * syy || 1)).toFixed(2)}`;
+    }
+    _projDemoRAF = requestAnimationFrame(frame);
+  }
+  _projDemoRAF = requestAnimationFrame(frame);
+}
+
 // interactions: click advances, keys navigate, Esc closes
 learnCard.addEventListener('click', (e) => {
   if (e.target.closest('a, button')) return;   // let links and buttons act
@@ -2285,6 +2692,9 @@ document.getElementById('learn-reopen').addEventListener('click', openLearn);
 try {
   if (!localStorage.getItem('sue_learn_seen')) openLearn();
 } catch (e) {}
+
+// first faithfulness score, computed once the page has settled
+setTimeout(scheduleFaithfulness, 800);
 
 // ---------- orbital auto-rotate (3D only, until user interacts) ----------
 // The rotation is a first-impression touch \u2014 it plays automatically
@@ -3143,6 +3553,34 @@ def main():
     print(f"Precomputing top-{TOP_NEIGHBORS} nearest neighbors (may take a bit) ...")
     nbrs = top_neighbors(X, TOP_NEIGHBORS)
 
+    print("Loading alternate projections (t-SNE / UMAP, cached) ...")
+    # The flagship viewer carries two settings per method (the dedicated
+    # tsne_umap_viewer.html page has the full four-setting grid); each
+    # layout is centered and scaled so the plot ranges stay comparable.
+    alt_all = compute_alt_projections(X)
+    _FLAGSHIP_ALT_KEYS = [
+        "tsne_p30_d3", "tsne_p30_d2", "tsne_p100_d3", "tsne_p100_d2",
+        "umap_n15_d3", "umap_n15_d2", "umap_n50_d3", "umap_n50_d2",
+    ]
+    alt_payload, alt_ranges = {}, {}
+    for k in _FLAGSHIP_ALT_KEYS:
+        if k not in alt_all:
+            continue
+        Zk = alt_all[k] - alt_all[k].mean(axis=0)
+        r = float(np.percentile(np.abs(Zk), 99.5)) or 1.0
+        alt_payload[k] = np.round(Zk, 3).tolist()
+        alt_ranges[k] = round(r * 1.15, 3)
+    print(f"  embedded {len(alt_payload)} alternate layouts in the payload")
+
+    # Quantized embeddings (int8) so the CLIENT can re-fit a PCA on any
+    # visible subset ("re-project") and score projection faithfulness
+    # (variance share + Shepard correlation) without shipping float32s.
+    import base64 as _b64
+    _emb_scale = float(np.abs(X).max()) / 127.0
+    _emb_q = np.clip(np.round(X / _emb_scale), -127, 127).astype(np.int8)
+    emb_b64 = _b64.b64encode(_emb_q.tobytes()).decode("ascii")
+    print(f"  quantized embeddings: {len(emb_b64) / 1e6:.1f} MB base64")
+
     print("Curating salient exhibits ...")
     exhibits = curate_exhibits(df, X, dd, prose_axis, ci, C,
                                coi, Cco, companies, cluster)
@@ -3230,6 +3668,12 @@ def main():
         "content_type_glyphs":   _CT_GLYPHS,
         "content_type_colors":   _CT_COLORS,
         "content_type_registers": _CT_REGISTERS,
+        # alternate projections + faithfulness support
+        "alt": alt_payload,
+        "alt_ranges": alt_ranges,
+        "emb_b64": emb_b64,
+        "emb_scale": round(_emb_scale, 8),
+        "emb_dim": int(X.shape[1]),
     }
     data_json = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
