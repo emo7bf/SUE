@@ -1,0 +1,1964 @@
+{
+  "GHG emissions (Scope 1 & 2)": {
+    "verdict": "GE Aerospace devotes the most attention to ghg emissions (scope 1 & 2) (depth 0.70), though its coverage runs more narrative than numeric; the gap to the group tail (Axon Enterprise, 0.45) is real but rhetorical depth should not be mistaken for performance. Credit where due: GE Aerospace goes beyond the standard report here, publishing a dedicated climate/TCFD report and a standalone data supplement - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 11,
+        "share_on_topic": 0.08029197080291971,
+        "depth": 0.47336211800575256,
+        "specificity": 0.03114868006913363,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 4,
+        "share_on_topic": 0.03508771929824561,
+        "depth": 0.4473862648010254,
+        "specificity": 0.033615436905203314,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 25,
+        "share_on_topic": 0.15822784810126583,
+        "depth": 0.5774680376052856,
+        "specificity": 0.01872813417751694,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 75,
+        "share_on_topic": 0.15212981744421908,
+        "depth": 0.6633225083351135,
+        "specificity": 0.03770491772172712,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.13383416831493378,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 313,
+        "share_on_topic": 0.36184971098265895,
+        "depth": 0.7033690214157104,
+        "specificity": 0.03285979789715756,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 27,
+        "share_on_topic": 0.1956521739130435,
+        "depth": 0.671703577041626,
+        "specificity": 0.036759911561543006,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 19,
+        "share_on_topic": 0.1165644171779141,
+        "depth": 0.5614694356918335,
+        "specificity": 0.07774731928952133,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 46,
+        "share_on_topic": 0.647887323943662,
+        "depth": 0.6503621935844421,
+        "specificity": 0.023198162344111622,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 66,
+        "share_on_topic": 0.2185430463576159,
+        "depth": 0.6846266984939575,
+        "specificity": 0.03951586476392282,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 30,
+        "share_on_topic": 0.17751479289940827,
+        "depth": 0.6026207208633423,
+        "specificity": 0.0672736045265359,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 29,
+        "share_on_topic": 0.18125,
+        "depth": 0.5896384119987488,
+        "specificity": 0.030264528227012127,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 39,
+        "share_on_topic": 0.22285714285714286,
+        "depth": 0.5944733619689941,
+        "specificity": 0.036783444519800076,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 22,
+        "share_on_topic": 0.17886178861788618,
+        "depth": 0.582896888256073,
+        "specificity": 0.02269050780254273,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 12,
+        "share_on_topic": 0.1016949152542373,
+        "depth": 0.555583119392395,
+        "specificity": 0.11407798788777652,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 38,
+        "share_on_topic": 0.21839080459770116,
+        "depth": 0.6294369697570801,
+        "specificity": 0.04500566249684659,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      }
+    ]
+  },
+  "GHG emissions (Scope 3)": {
+    "verdict": "GE Aerospace leads the peer group on ghg emissions (scope 3) (depth 0.65 vs. group tail 0.48), and its passages above are noticeably more concrete than the group norm. Credit where due: GE Aerospace goes beyond the standard report here, publishing a dedicated climate/TCFD report and a standalone data supplement - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 21,
+        "share_on_topic": 0.15328467153284672,
+        "depth": 0.4887773394584656,
+        "specificity": 0.018422940903202317,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 13,
+        "share_on_topic": 0.11403508771929824,
+        "depth": 0.4841541647911072,
+        "specificity": 0.017467790856595562,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 23,
+        "share_on_topic": 0.14556962025316456,
+        "depth": 0.5049619674682617,
+        "specificity": 0.038234609615229745,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 122,
+        "share_on_topic": 0.24746450304259635,
+        "depth": 0.6454797983169556,
+        "specificity": 0.030355479518256318,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.20524661242961884,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 256,
+        "share_on_topic": 0.29595375722543354,
+        "depth": 0.653354287147522,
+        "specificity": 0.03372777360838071,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 33,
+        "share_on_topic": 0.2391304347826087,
+        "depth": 0.5935300588607788,
+        "specificity": 0.02940423890368273,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 38,
+        "share_on_topic": 0.2331288343558282,
+        "depth": 0.5642873644828796,
+        "specificity": 0.04432204543249527,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 33,
+        "share_on_topic": 0.4647887323943662,
+        "depth": 0.6024311780929565,
+        "specificity": 0.02472425871696396,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 78,
+        "share_on_topic": 0.2582781456953642,
+        "depth": 0.6177500486373901,
+        "specificity": 0.035477947105904795,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 34,
+        "share_on_topic": 0.20118343195266272,
+        "depth": 0.5757032036781311,
+        "specificity": 0.03204102341822725,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 29,
+        "share_on_topic": 0.18125,
+        "depth": 0.5298377871513367,
+        "specificity": 0.03403625097744095,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 44,
+        "share_on_topic": 0.25142857142857145,
+        "depth": 0.5679547190666199,
+        "specificity": 0.03101304798479341,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 21,
+        "share_on_topic": 0.17073170731707318,
+        "depth": 0.5104652643203735,
+        "specificity": 0.017685763546022394,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 17,
+        "share_on_topic": 0.1440677966101695,
+        "depth": 0.5170563459396362,
+        "specificity": 0.0765487530647171,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 34,
+        "share_on_topic": 0.19540229885057472,
+        "depth": 0.5403448343276978,
+        "specificity": 0.048861301882103775,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      }
+    ]
+  },
+  "Hazardous waste & materials": {
+    "verdict": "Boeing leads the peer group on hazardous waste & materials (depth 0.72 vs. group tail 0.46), and its passages above are noticeably more concrete than the group norm. Credit where due: Northrop Grumman goes beyond the standard report here, publishing a dedicated climate/TCFD report and a full GRI/SASB reporting index - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 11,
+        "share_on_topic": 0.08029197080291971,
+        "depth": 0.5229191184043884,
+        "specificity": 0.01647498693052897,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 8,
+        "share_on_topic": 0.07017543859649122,
+        "depth": 0.5141333937644958,
+        "specificity": 0.014448152267952047,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 22,
+        "share_on_topic": 0.13924050632911392,
+        "depth": 0.5857376456260681,
+        "specificity": 0.03911626390224238,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 50,
+        "share_on_topic": 0.10141987829614604,
+        "depth": 0.7221721410751343,
+        "specificity": 0.04659412264555272,
+        "overdelivery": []
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.19283024966716766,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 23,
+        "share_on_topic": 0.026589595375722544,
+        "depth": 0.49899157881736755,
+        "specificity": 0.04005615471833976,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 11,
+        "share_on_topic": 0.07971014492753623,
+        "depth": 0.49470075964927673,
+        "specificity": 0.038908102156155554,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 20,
+        "share_on_topic": 0.12269938650306748,
+        "depth": 0.6225286722183228,
+        "specificity": 0.04807588816411537,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 8,
+        "share_on_topic": 0.11267605633802817,
+        "depth": 0.456950843334198,
+        "specificity": 0.020840295871044058,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 20,
+        "share_on_topic": 0.06622516556291391,
+        "depth": 0.5608802437782288,
+        "specificity": 0.016458598035321494,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 17,
+        "share_on_topic": 0.10059171597633136,
+        "depth": 0.5769690275192261,
+        "specificity": 0.03354497623594238,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 24,
+        "share_on_topic": 0.15,
+        "depth": 0.5821499824523926,
+        "specificity": 0.022503244345569152,
+        "overdelivery": []
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 22,
+        "share_on_topic": 0.12571428571428572,
+        "depth": 0.6092351078987122,
+        "specificity": 0.058290800109819574,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 9,
+        "share_on_topic": 0.07317073170731707,
+        "depth": 0.4914921820163727,
+        "specificity": 0.03212781786927556,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 8,
+        "share_on_topic": 0.06779661016949153,
+        "depth": 0.49459633231163025,
+        "specificity": 0.11396606159735523,
+        "overdelivery": []
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 19,
+        "share_on_topic": 0.10919540229885058,
+        "depth": 0.5522152781486511,
+        "specificity": 0.0576114524907822,
+        "overdelivery": []
+      }
+    ]
+  },
+  "Water stewardship": {
+    "verdict": "Boeing leads the peer group on water stewardship (depth 0.68 vs. group tail 0.40), and its passages above are noticeably more concrete than the group norm. Credit where due: GE Aerospace goes beyond the standard report here, publishing a standalone data supplement - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 7,
+        "share_on_topic": 0.051094890510948905,
+        "depth": 0.5142838358879089,
+        "specificity": 0.04610684469567515,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 1,
+        "share_on_topic": 0.008771929824561403,
+        "depth": 0.3292882442474365,
+        "specificity": 0.022222222222222223,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 10,
+        "share_on_topic": 0.06329113924050633,
+        "depth": 0.4838661253452301,
+        "specificity": 0.020681745148930914,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 41,
+        "share_on_topic": 0.08316430020283976,
+        "depth": 0.6825616955757141,
+        "specificity": 0.04395191467119638,
+        "overdelivery": []
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.12977829575538635,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 24,
+        "share_on_topic": 0.027745664739884393,
+        "depth": 0.6406363248825073,
+        "specificity": 0.0345009889823231,
+        "overdelivery": [
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 2,
+        "share_on_topic": 0.014492753623188406,
+        "depth": 0.42963165044784546,
+        "specificity": 0.012777777777777777,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 8,
+        "share_on_topic": 0.049079754601226995,
+        "depth": 0.5134913325309753,
+        "specificity": 0.06754171645527668,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 9,
+        "share_on_topic": 0.1267605633802817,
+        "depth": 0.4826030135154724,
+        "specificity": 0.023670660763727133,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 8,
+        "share_on_topic": 0.026490066225165563,
+        "depth": 0.4999001920223236,
+        "specificity": 0.048092484459209675,
+        "overdelivery": []
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 11,
+        "share_on_topic": 0.0650887573964497,
+        "depth": 0.5567807555198669,
+        "specificity": 0.028194177593510186,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 12,
+        "share_on_topic": 0.075,
+        "depth": 0.5195958614349365,
+        "specificity": 0.03611214106208544,
+        "overdelivery": []
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 13,
+        "share_on_topic": 0.07428571428571429,
+        "depth": 0.5991132259368896,
+        "specificity": 0.0727448351919987,
+        "overdelivery": [
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 3,
+        "share_on_topic": 0.024390243902439025,
+        "depth": 0.39643165469169617,
+        "specificity": 0.03925925925925926,
+        "overdelivery": []
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 5,
+        "share_on_topic": 0.0423728813559322,
+        "depth": 0.44506293535232544,
+        "specificity": 0.07476267203759651,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 9,
+        "share_on_topic": 0.05172413793103448,
+        "depth": 0.4826509356498718,
+        "specificity": 0.08890249769916446,
+        "overdelivery": []
+      }
+    ]
+  },
+  "Supply chain responsibility": {
+    "verdict": "Huntington Ingalls Industries devotes the most attention to supply chain responsibility (depth 0.63), though its coverage runs more narrative than numeric; the gap to the group tail (Howmet Aerospace, 0.48) is real but rhetorical depth should not be mistaken for performance. Credit where due: Huntington Ingalls Industries goes beyond the standard report here, publishing a dedicated climate/TCFD report and independent assurance - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 33,
+        "share_on_topic": 0.24087591240875914,
+        "depth": 0.6045191287994385,
+        "specificity": 0.01232948693460373,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 17,
+        "share_on_topic": 0.14912280701754385,
+        "depth": 0.5520748496055603,
+        "specificity": 0.009414309290642471,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 16,
+        "share_on_topic": 0.10126582278481013,
+        "depth": 0.5406099557876587,
+        "specificity": 0.01556104004449388,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 61,
+        "share_on_topic": 0.12373225152129817,
+        "depth": 0.5543011426925659,
+        "specificity": 0.03996855576860639,
+        "overdelivery": []
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 1,
+        "share_on_topic": 0.09090909090909091,
+        "depth": 0.3109988272190094,
+        "specificity": 0.0014858841010401188,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 89,
+        "share_on_topic": 0.10289017341040463,
+        "depth": 0.5877721905708313,
+        "specificity": 0.02290565701756964,
+        "overdelivery": [
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 23,
+        "share_on_topic": 0.16666666666666666,
+        "depth": 0.5025501847267151,
+        "specificity": 0.005797423868710806,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 29,
+        "share_on_topic": 0.17791411042944785,
+        "depth": 0.6109117269515991,
+        "specificity": 0.02751810227626268,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 12,
+        "share_on_topic": 0.16901408450704225,
+        "depth": 0.4770998954772949,
+        "specificity": 0.016212883143879284,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 80,
+        "share_on_topic": 0.26490066225165565,
+        "depth": 0.629111647605896,
+        "specificity": 0.01407691122198797,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 47,
+        "share_on_topic": 0.2781065088757396,
+        "depth": 0.6267989873886108,
+        "specificity": 0.013906497814718612,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 15,
+        "share_on_topic": 0.09375,
+        "depth": 0.49530133605003357,
+        "specificity": 0.011790969224697865,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 29,
+        "share_on_topic": 0.1657142857142857,
+        "depth": 0.5438653230667114,
+        "specificity": 0.017132186043872098,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 15,
+        "share_on_topic": 0.12195121951219512,
+        "depth": 0.5719625353813171,
+        "specificity": 0.009704115684093436,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 14,
+        "share_on_topic": 0.11864406779661017,
+        "depth": 0.5476217865943909,
+        "specificity": 0.008018433179723502,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 37,
+        "share_on_topic": 0.21264367816091953,
+        "depth": 0.5858462452888489,
+        "specificity": 0.011775379607021297,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      }
+    ]
+  },
+  "Labor & human rights": {
+    "verdict": "GE Aerospace leads the peer group on labor & human rights (depth 0.60 vs. group tail 0.42), and its passages above are noticeably more concrete than the group norm. Credit where due: GE Aerospace goes beyond the standard report here, publishing a standalone data supplement - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 5,
+        "share_on_topic": 0.0364963503649635,
+        "depth": 0.4633614122867584,
+        "specificity": 0.00489432703003337,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 6,
+        "share_on_topic": 0.05263157894736842,
+        "depth": 0.4334232807159424,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 5,
+        "share_on_topic": 0.03164556962025317,
+        "depth": 0.4584771692752838,
+        "specificity": 0.0175743418613274,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 9,
+        "share_on_topic": 0.018255578093306288,
+        "depth": 0.47045665979385376,
+        "specificity": 0.02000879503198751,
+        "overdelivery": []
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 2,
+        "share_on_topic": 0.18181818181818182,
+        "depth": 0.29450473189353943,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 34,
+        "share_on_topic": 0.03930635838150289,
+        "depth": 0.599075198173523,
+        "specificity": 0.01961162447278803,
+        "overdelivery": [
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 8,
+        "share_on_topic": 0.057971014492753624,
+        "depth": 0.5081299543380737,
+        "specificity": 0.0044444444444444444,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 3,
+        "share_on_topic": 0.018404907975460124,
+        "depth": 0.42609739303588867,
+        "specificity": 0.0425925925925926,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.22488555312156677,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 19,
+        "share_on_topic": 0.06291390728476821,
+        "depth": 0.5227206945419312,
+        "specificity": 0.005324241726332954,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 21,
+        "share_on_topic": 0.1242603550295858,
+        "depth": 0.5397783517837524,
+        "specificity": 0.007037390163085379,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 2,
+        "share_on_topic": 0.0125,
+        "depth": 0.3327244818210602,
+        "specificity": 0.0033370411568409346,
+        "overdelivery": []
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 3,
+        "share_on_topic": 0.017142857142857144,
+        "depth": 0.417512983083725,
+        "specificity": 0.015185185185185185,
+        "overdelivery": [
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 8,
+        "share_on_topic": 0.06504065040650407,
+        "depth": 0.5234934687614441,
+        "specificity": 0.003056173526140156,
+        "overdelivery": []
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 10,
+        "share_on_topic": 0.0847457627118644,
+        "depth": 0.5142112970352173,
+        "specificity": 0.0032222222222222222,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 5,
+        "share_on_topic": 0.028735632183908046,
+        "depth": 0.4363672137260437,
+        "specificity": 0.0040014831294030405,
+        "overdelivery": []
+      }
+    ]
+  },
+  "Worker safety": {
+    "verdict": "Boeing leads the peer group on worker safety (depth 0.71 vs. group tail 0.53), and its passages above are noticeably more concrete than the group norm. Credit where due: Boeing goes beyond the standard report here, publishing a dedicated climate/TCFD report - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 36,
+        "share_on_topic": 0.26277372262773724,
+        "depth": 0.6048980355262756,
+        "specificity": 0.010157205767933435,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 23,
+        "share_on_topic": 0.20175438596491227,
+        "depth": 0.5335065722465515,
+        "specificity": 0.011114281688573535,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 28,
+        "share_on_topic": 0.17721518987341772,
+        "depth": 0.6354188919067383,
+        "specificity": 0.021758264142452462,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 158,
+        "share_on_topic": 0.3204868154158215,
+        "depth": 0.7071483135223389,
+        "specificity": 0.02886314863962446,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 1,
+        "share_on_topic": 0.09090909090909091,
+        "depth": 0.3097185492515564,
+        "specificity": 0.0014858841010401188,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 118,
+        "share_on_topic": 0.13641618497109825,
+        "depth": 0.673947811126709,
+        "specificity": 0.015984847317409775,
+        "overdelivery": [
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 20,
+        "share_on_topic": 0.14492753623188406,
+        "depth": 0.5383753776550293,
+        "specificity": 0.013173711531331109,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 36,
+        "share_on_topic": 0.22085889570552147,
+        "depth": 0.6089313626289368,
+        "specificity": 0.03118125077246323,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 2,
+        "share_on_topic": 0.028169014084507043,
+        "depth": 0.41096800565719604,
+        "specificity": 0.012222222222222221,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 62,
+        "share_on_topic": 0.2052980132450331,
+        "depth": 0.6336349248886108,
+        "specificity": 0.014951778848240107,
+        "overdelivery": []
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 43,
+        "share_on_topic": 0.25443786982248523,
+        "depth": 0.6145676374435425,
+        "specificity": 0.01873796374496179,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 17,
+        "share_on_topic": 0.10625,
+        "depth": 0.5317692756652832,
+        "specificity": 0.011775102328658566,
+        "overdelivery": []
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 27,
+        "share_on_topic": 0.15428571428571428,
+        "depth": 0.6308072805404663,
+        "specificity": 0.01946992233736366,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 34,
+        "share_on_topic": 0.2764227642276423,
+        "depth": 0.5643917322158813,
+        "specificity": 0.010201787109724617,
+        "overdelivery": []
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 31,
+        "share_on_topic": 0.2627118644067797,
+        "depth": 0.6161673665046692,
+        "specificity": 0.00867499132847728,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 34,
+        "share_on_topic": 0.19540229885057472,
+        "depth": 0.6396685838699341,
+        "specificity": 0.015039563165844972,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      }
+    ]
+  },
+  "Workforce & inclusion": {
+    "verdict": "Huntington Ingalls Industries devotes the most attention to workforce & inclusion (depth 0.54), though its coverage runs more narrative than numeric; the gap to the group tail (Northrop Grumman, 0.47) is real but rhetorical depth should not be mistaken for performance. Credit where due: GE Aerospace goes beyond the standard report here, publishing a standalone data supplement - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 14,
+        "share_on_topic": 0.10218978102189781,
+        "depth": 0.5434951782226562,
+        "specificity": 0.04066646702068143,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 10,
+        "share_on_topic": 0.08771929824561403,
+        "depth": 0.4680442214012146,
+        "specificity": 0.022233840069212706,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 15,
+        "share_on_topic": 0.0949367088607595,
+        "depth": 0.47161784768104553,
+        "specificity": 0.02557972519436646,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 69,
+        "share_on_topic": 0.13995943204868155,
+        "depth": 0.5353037714958191,
+        "specificity": 0.05403304310916601,
+        "overdelivery": []
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.2676432728767395,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 73,
+        "share_on_topic": 0.08439306358381503,
+        "depth": 0.5361896753311157,
+        "specificity": 0.025367695627565787,
+        "overdelivery": [
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 10,
+        "share_on_topic": 0.07246376811594203,
+        "depth": 0.4782804548740387,
+        "specificity": 0.009235489829969808,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 18,
+        "share_on_topic": 0.11042944785276074,
+        "depth": 0.49319514632225037,
+        "specificity": 0.04773328389568657,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.3405839502811432,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 31,
+        "share_on_topic": 0.10264900662251655,
+        "depth": 0.5437765717506409,
+        "specificity": 0.01595707695926577,
+        "overdelivery": []
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 19,
+        "share_on_topic": 0.11242603550295859,
+        "depth": 0.48573818802833557,
+        "specificity": 0.02837435488861962,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 14,
+        "share_on_topic": 0.0875,
+        "depth": 0.4895225465297699,
+        "specificity": 0.015397001959849567,
+        "overdelivery": []
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 16,
+        "share_on_topic": 0.09142857142857143,
+        "depth": 0.4650925099849701,
+        "specificity": 0.02557224781501291,
+        "overdelivery": [
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 14,
+        "share_on_topic": 0.11382113821138211,
+        "depth": 0.493596613407135,
+        "specificity": 0.008655472570934195,
+        "overdelivery": []
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 25,
+        "share_on_topic": 0.211864406779661,
+        "depth": 0.4838406443595886,
+        "specificity": 0.01573649800336319,
+        "overdelivery": []
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 19,
+        "share_on_topic": 0.10919540229885058,
+        "depth": 0.497492253780365,
+        "specificity": 0.01416566432729828,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      }
+    ]
+  },
+  "Governance & ethics": {
+    "verdict": "GE Aerospace leads the peer group on governance & ethics (depth 0.57 vs. group tail 0.41), and its passages above are noticeably more concrete than the group norm. Credit where due: GE Aerospace goes beyond the standard report here, publishing a dedicated climate/TCFD report and a standalone data supplement - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 38,
+        "share_on_topic": 0.2773722627737226,
+        "depth": 0.5590940713882446,
+        "specificity": 0.011203158159281277,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 23,
+        "share_on_topic": 0.20175438596491227,
+        "depth": 0.5245139598846436,
+        "specificity": 0.012562106163432882,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 22,
+        "share_on_topic": 0.13924050632911392,
+        "depth": 0.5431272983551025,
+        "specificity": 0.0176317689331035,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 58,
+        "share_on_topic": 0.11764705882352941,
+        "depth": 0.5545309782028198,
+        "specificity": 0.022436892892309355,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 2,
+        "share_on_topic": 0.18181818181818182,
+        "depth": 0.30971577763557434,
+        "specificity": 0.0022271714922048997,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 76,
+        "share_on_topic": 0.08786127167630058,
+        "depth": 0.5699566006660461,
+        "specificity": 0.023048343333435778,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 28,
+        "share_on_topic": 0.2028985507246377,
+        "depth": 0.548596978187561,
+        "specificity": 0.003651808888182637,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 34,
+        "share_on_topic": 0.2085889570552147,
+        "depth": 0.549049437046051,
+        "specificity": 0.027523649782039278,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 3,
+        "share_on_topic": 0.04225352112676056,
+        "depth": 0.4138762354850769,
+        "specificity": 0.005560911300622091,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 43,
+        "share_on_topic": 0.1423841059602649,
+        "depth": 0.5507562756538391,
+        "specificity": 0.012276977866436249,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 37,
+        "share_on_topic": 0.21893491124260356,
+        "depth": 0.5561757683753967,
+        "specificity": 0.02376043465387582,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 19,
+        "share_on_topic": 0.11875,
+        "depth": 0.5018952488899231,
+        "specificity": 0.00616418245765567,
+        "overdelivery": []
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 27,
+        "share_on_topic": 0.15428571428571428,
+        "depth": 0.5429824590682983,
+        "specificity": 0.017335357059226203,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 11,
+        "share_on_topic": 0.08943089430894309,
+        "depth": 0.4832923412322998,
+        "specificity": 0.007273963213896473,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 13,
+        "share_on_topic": 0.11016949152542373,
+        "depth": 0.4735758900642395,
+        "specificity": 0.009831247764660541,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 43,
+        "share_on_topic": 0.2471264367816092,
+        "depth": 0.5403593182563782,
+        "specificity": 0.014913671138517803,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      }
+    ]
+  },
+  "Product safety & consequences": {
+    "verdict": "GE Aerospace leads the peer group on product safety & consequences (depth 0.58 vs. group tail 0.45), and its passages above are noticeably more concrete than the group norm. Credit where due: GE Aerospace goes beyond the standard report here, publishing a dedicated climate/TCFD report and a standalone data supplement - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 33,
+        "share_on_topic": 0.24087591240875914,
+        "depth": 0.5760875940322876,
+        "specificity": 0.008454175673159398,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 19,
+        "share_on_topic": 0.16666666666666666,
+        "depth": 0.5166490077972412,
+        "specificity": 0.004972841819045204,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 18,
+        "share_on_topic": 0.11392405063291139,
+        "depth": 0.5079541206359863,
+        "specificity": 0.005987654320987654,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 99,
+        "share_on_topic": 0.20081135902636918,
+        "depth": 0.5376673936843872,
+        "specificity": 0.0188460936995108,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 1,
+        "share_on_topic": 0.09090909090909091,
+        "depth": 0.2656268775463104,
+        "specificity": 0.0014858841010401188,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 108,
+        "share_on_topic": 0.12485549132947976,
+        "depth": 0.5828589200973511,
+        "specificity": 0.010549835491775161,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 27,
+        "share_on_topic": 0.1956521739130435,
+        "depth": 0.5438969135284424,
+        "specificity": 0.006174902473451788,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 24,
+        "share_on_topic": 0.147239263803681,
+        "depth": 0.5336071252822876,
+        "specificity": 0.021996920446586743,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.35920628905296326,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 63,
+        "share_on_topic": 0.20860927152317882,
+        "depth": 0.5598124861717224,
+        "specificity": 0.00887755503703439,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 36,
+        "share_on_topic": 0.21301775147928995,
+        "depth": 0.5525018572807312,
+        "specificity": 0.010776141157388406,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 8,
+        "share_on_topic": 0.05,
+        "depth": 0.4541507363319397,
+        "specificity": 0.007921920792962238,
+        "overdelivery": []
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 30,
+        "share_on_topic": 0.17142857142857143,
+        "depth": 0.5478911995887756,
+        "specificity": 0.0074100399668277726,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 19,
+        "share_on_topic": 0.15447154471544716,
+        "depth": 0.5231835246086121,
+        "specificity": 0.008480377807700563,
+        "overdelivery": []
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 31,
+        "share_on_topic": 0.2627118644067797,
+        "depth": 0.5700060725212097,
+        "specificity": 0.006022821055653235,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 14,
+        "share_on_topic": 0.08045977011494253,
+        "depth": 0.4905417859554291,
+        "specificity": 0.00770229708494447,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      }
+    ]
+  },
+  "Cybersecurity & data protection": {
+    "verdict": "GE Aerospace devotes the most attention to cybersecurity & data protection (depth 0.63), though its coverage runs more narrative than numeric; the gap to the group tail (STANDARDAERO, 0.49) is real but rhetorical depth should not be mistaken for performance. Credit where due: GE Aerospace goes beyond the standard report here, publishing a standalone data supplement - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 24,
+        "share_on_topic": 0.17518248175182483,
+        "depth": 0.5868937969207764,
+        "specificity": 0.007966363636280222,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 31,
+        "share_on_topic": 0.2719298245614035,
+        "depth": 0.5735272765159607,
+        "specificity": 0.008282440554306516,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 17,
+        "share_on_topic": 0.10759493670886076,
+        "depth": 0.5916327238082886,
+        "specificity": 0.01550830788708093,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 62,
+        "share_on_topic": 0.1257606490872211,
+        "depth": 0.5532855987548828,
+        "specificity": 0.016259523724090088,
+        "overdelivery": []
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 1,
+        "share_on_topic": 0.09090909090909091,
+        "depth": 0.2952977120876312,
+        "specificity": 0.0014858841010401188,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 63,
+        "share_on_topic": 0.07283236994219654,
+        "depth": 0.6348393559455872,
+        "specificity": 0.008910608150735553,
+        "overdelivery": [
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 14,
+        "share_on_topic": 0.10144927536231885,
+        "depth": 0.5254276990890503,
+        "specificity": 0.01103969136783375,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 17,
+        "share_on_topic": 0.10429447852760736,
+        "depth": 0.5309290289878845,
+        "specificity": 0.020264709517474028,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.29176801443099976,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 38,
+        "share_on_topic": 0.12582781456953643,
+        "depth": 0.5611928701400757,
+        "specificity": 0.007837818643663298,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 20,
+        "share_on_topic": 0.11834319526627218,
+        "depth": 0.5259454846382141,
+        "specificity": 0.011396125888728409,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 15,
+        "share_on_topic": 0.09375,
+        "depth": 0.5656689405441284,
+        "specificity": 0.005334239690190747,
+        "overdelivery": []
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 18,
+        "share_on_topic": 0.10285714285714286,
+        "depth": 0.5320616960525513,
+        "specificity": 0.00784548554672168,
+        "overdelivery": [
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 7,
+        "share_on_topic": 0.056910569105691054,
+        "depth": 0.4914607107639313,
+        "specificity": 0.002382541448169924,
+        "overdelivery": []
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 23,
+        "share_on_topic": 0.19491525423728814,
+        "depth": 0.5288858413696289,
+        "specificity": 0.008842030597604425,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 17,
+        "share_on_topic": 0.09770114942528736,
+        "depth": 0.5549785494804382,
+        "specificity": 0.010667143518542439,
+        "overdelivery": []
+      }
+    ]
+  },
+  "Climate risk & assurance": {
+    "verdict": "GE Aerospace leads the peer group on climate risk & assurance (depth 0.68 vs. group tail 0.47), and its passages above are noticeably more concrete than the group norm. Credit where due: GE Aerospace goes beyond the standard report here, publishing a dedicated climate/TCFD report and a standalone data supplement - over-delivery of this kind is a stronger signal than polished prose.",
+    "companies": [
+      {
+        "company": "AEROVIRONMENT INC",
+        "n_chunks": 137,
+        "n_on_topic": 14,
+        "share_on_topic": 0.10218978102189781,
+        "depth": 0.4775959849357605,
+        "specificity": 0.019771441917862956,
+        "overdelivery": []
+      },
+      {
+        "company": "Axon Enterprise",
+        "n_chunks": 114,
+        "n_on_topic": 5,
+        "share_on_topic": 0.043859649122807015,
+        "depth": 0.46914514899253845,
+        "specificity": 0.033336793968607094,
+        "overdelivery": []
+      },
+      {
+        "company": "BWX TECHNOLOGIES INC",
+        "n_chunks": 158,
+        "n_on_topic": 29,
+        "share_on_topic": 0.18354430379746836,
+        "depth": 0.5995873212814331,
+        "specificity": 0.018366398342804218,
+        "overdelivery": []
+      },
+      {
+        "company": "Boeing",
+        "n_chunks": 493,
+        "n_on_topic": 84,
+        "share_on_topic": 0.17038539553752535,
+        "depth": 0.6227763891220093,
+        "specificity": 0.03569915310306763,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "CURTISS WRIGHT",
+        "n_chunks": 11,
+        "n_on_topic": 0,
+        "share_on_topic": 0.0,
+        "depth": 0.1360780894756317,
+        "specificity": 0.0,
+        "overdelivery": []
+      },
+      {
+        "company": "GE Aerospace",
+        "n_chunks": 865,
+        "n_on_topic": 287,
+        "share_on_topic": 0.33179190751445087,
+        "depth": 0.6774874925613403,
+        "specificity": 0.03464423409688608,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a standalone data supplement"
+        ]
+      },
+      {
+        "company": "General Dynamics",
+        "n_chunks": 138,
+        "n_on_topic": 19,
+        "share_on_topic": 0.13768115942028986,
+        "depth": 0.6091805696487427,
+        "specificity": 0.03574237782071047,
+        "overdelivery": []
+      },
+      {
+        "company": "HEXCEL",
+        "n_chunks": 163,
+        "n_on_topic": 18,
+        "share_on_topic": 0.11042944785276074,
+        "depth": 0.5168112516403198,
+        "specificity": 0.03748113727032762,
+        "overdelivery": []
+      },
+      {
+        "company": "Howmet Aerospace",
+        "n_chunks": 71,
+        "n_on_topic": 51,
+        "share_on_topic": 0.7183098591549296,
+        "depth": 0.6522409319877625,
+        "specificity": 0.022101006080843946,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Huntington Ingalls Industries",
+        "n_chunks": 302,
+        "n_on_topic": 64,
+        "share_on_topic": 0.2119205298013245,
+        "depth": 0.6244009733200073,
+        "specificity": 0.03121886756721081,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "L3Harris",
+        "n_chunks": 169,
+        "n_on_topic": 43,
+        "share_on_topic": 0.25443786982248523,
+        "depth": 0.5919027924537659,
+        "specificity": 0.04822162263309251,
+        "overdelivery": []
+      },
+      {
+        "company": "MOOG INC CLASS A",
+        "n_chunks": 160,
+        "n_on_topic": 47,
+        "share_on_topic": 0.29375,
+        "depth": 0.6063311100006104,
+        "specificity": 0.01465505049913063,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      },
+      {
+        "company": "Northrop Grumman",
+        "n_chunks": 175,
+        "n_on_topic": 57,
+        "share_on_topic": 0.32571428571428573,
+        "depth": 0.6326535940170288,
+        "specificity": 0.018503772291642597,
+        "overdelivery": [
+          "a dedicated climate/TCFD report",
+          "a full GRI/SASB reporting index"
+        ]
+      },
+      {
+        "company": "STANDARDAERO",
+        "n_chunks": 123,
+        "n_on_topic": 27,
+        "share_on_topic": 0.21951219512195122,
+        "depth": 0.5657289028167725,
+        "specificity": 0.01918815039054922,
+        "overdelivery": [
+          "a dedicated climate/TCFD report"
+        ]
+      },
+      {
+        "company": "Textron",
+        "n_chunks": 118,
+        "n_on_topic": 12,
+        "share_on_topic": 0.1016949152542373,
+        "depth": 0.4988628029823303,
+        "specificity": 0.06037706505170354,
+        "overdelivery": [
+          "a standalone human-rights disclosure"
+        ]
+      },
+      {
+        "company": "WOODWARD",
+        "n_chunks": 174,
+        "n_on_topic": 32,
+        "share_on_topic": 0.1839080459770115,
+        "depth": 0.5566606521606445,
+        "specificity": 0.040002047027561494,
+        "overdelivery": [
+          "independent assurance"
+        ]
+      }
+    ]
+  }
+}
