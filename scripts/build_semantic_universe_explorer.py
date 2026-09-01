@@ -394,7 +394,8 @@ def _embedding_hash(X: np.ndarray) -> str:
     return h.hexdigest()[:16]
 
 
-def compute_alt_projections(X: np.ndarray, force: bool = False) -> dict:
+def compute_alt_projections(X: np.ndarray, force: bool = False,
+                            cache_path: Path = None) -> dict:
     """Compute (and cache) 3D + 2D t-SNE and UMAP embeddings of the corpus.
 
     Returns a dict keyed by projection name (e.g. "tsne_p30_d3"), value
@@ -403,6 +404,8 @@ def compute_alt_projections(X: np.ndarray, force: bool = False) -> dict:
     """
     from sklearn.manifold import TSNE
 
+    if cache_path is None:
+        cache_path = _PROJECTIONS_CACHE
     want_key = _embedding_hash(X)
     keys_needed = []
     for p in _TSNE_PERPLEXITIES:
@@ -410,9 +413,9 @@ def compute_alt_projections(X: np.ndarray, force: bool = False) -> dict:
     for n in _UMAP_N_NEIGHBORS:
         keys_needed += [_proj_key_umap(n, 3), _proj_key_umap(n, 2)]
 
-    if not force and _PROJECTIONS_CACHE.exists():
+    if not force and cache_path.exists():
         try:
-            cache = np.load(_PROJECTIONS_CACHE, allow_pickle=False)
+            cache = np.load(cache_path, allow_pickle=False)
             if str(cache.get("_hash", "")) == want_key and all(k in cache for k in keys_needed):
                 out = {k: cache[k].astype(np.float32) for k in keys_needed}
                 print(f"  loaded alt projections from cache ({len(out)} arrays)")
@@ -453,9 +456,9 @@ def compute_alt_projections(X: np.ndarray, force: bool = False) -> dict:
         print("  ! umap-learn not installed; skipping UMAP projections")
 
     try:
-        _PROJECTIONS_CACHE.parent.mkdir(parents=True, exist_ok=True)
-        np.savez(_PROJECTIONS_CACHE, _hash=np.array(want_key), **out)
-        print(f"  cached alt projections \\u2192 {_PROJECTIONS_CACHE}")
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        np.savez(cache_path, _hash=np.array(want_key), **out)
+        print(f"  cached alt projections \\u2192 {cache_path}")
     except Exception as e:
         print(f"  ! could not save projections cache: {e}")
 
@@ -941,6 +944,8 @@ _HTML = """<!DOCTYPE html>
 <header class="page-header">
   __NAV_BAR__
   <h1>Semantic Universe Explorer <span class="accent">&mdash; SUE</span>
+    <span style="font-size:14px;color:var(--muted);font-weight:400;
+      margin-left:10px;">__CORPUS_NAME__</span>
     <button id="learn-reopen" type="button"
       title="Reopen the guided introduction cards">Guide</button></h1>
 </header>
@@ -986,7 +991,7 @@ _HTML = """<!DOCTYPE html>
       </select></label>
     <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.35;">
       All four settings side-by-side:
-      <a href="tsne_umap_viewer.html">t-SNE / UMAP grid</a>.
+      <a href="__PREFIX__tsne_umap_viewer.html">t-SNE / UMAP grid</a>.
     </div>
     <button id="reproject-btn" class="sel-btn" type="button"
       style="margin-top:8px;width:100%;"
@@ -1089,7 +1094,7 @@ _HTML = """<!DOCTYPE html>
        z-index:20;background:var(--panel);border:1px solid var(--border);
        border-radius:999px;padding:4px 12px;font-size:11.5px;
        color:var(--muted);box-shadow:0 2px 6px rgba(0,0,0,.06);">
-    <span id="faith-text">faithfulness: computing\u2026</span>
+    <span id="faith-text">fidelity to original space: computing\u2026</span>
     <button id="faith-info" type="button" title="What do these numbers mean?"
       style="border:none;background:none;color:var(--learn);cursor:pointer;
       font-size:12px;padding:0 0 0 4px;">\u24D8</button>
@@ -1099,7 +1104,7 @@ _HTML = """<!DOCTYPE html>
        whichever color mode is active, without cluttering the sidebar. -->
   <div id="color-legend" class="color-legend"></div>
   <div class="coming-soon"><b>New:</b>
-    <a href="tsne_umap_viewer.html">interactive t-SNE &amp; UMAP viewers</a>
+    <a href="__PREFIX__tsne_umap_viewer.html">interactive t-SNE &amp; UMAP viewers</a>
     &mdash; the same corpus through neighborhood-preserving lenses.</div>
 </main>
 
@@ -1247,8 +1252,16 @@ function colorValues(mode) {
 // Marker symbols keyed by company index for the "content_type" color
 // mode: color encodes category, shape encodes company. Order matches
 // DATA.companies (alphabetised at build time: AMAT, ASML, KLA, Lam, TEL).
-const COMPANY_SYMBOLS_3D = ['circle', 'diamond', 'square', 'cross', 'x'];
-const COMPANY_SYMBOLS_2D = ['circle', 'diamond', 'square', 'cross', 'x'];
+// 3-D plots offer eight marker symbols; 2-D offers many more. Company
+// index wraps around when a corpus has more companies than symbols.
+const COMPANY_SYMBOLS_3D = ['circle', 'diamond', 'square', 'cross', 'x',
+                            'circle-open', 'diamond-open', 'square-open'];
+const COMPANY_SYMBOLS_2D = ['circle', 'diamond', 'square', 'cross', 'x',
+                            'triangle-up', 'triangle-down', 'star',
+                            'hexagon', 'pentagon', 'bowtie', 'hourglass',
+                            'star-square', 'hexagram', 'diamond-tall',
+                            'star-diamond'];
+function symFor(symbols, ci) { return symbols[ci % symbols.length]; }
 
 function palette(i) { return DATA.palette[i % DATA.palette.length]; }
 
@@ -1379,7 +1392,7 @@ function buildTraces() {
         // (category, company) pair can carry its own marker symbol.
         // Only the first sub-trace shows in the legend so the legend
         // stays a clean 12-entry list, not 60.
-        const byCompany = symbols.map(() => []);
+        const byCompany = DATA.companies.map(() => []);
         for (const i of idx) byCompany[DATA.company_of[i]].push(i);
         let firstSub = true;
         for (let ci = 0; ci < byCompany.length; ci++) {
@@ -1387,7 +1400,7 @@ function buildTraces() {
           if (!sub.length) continue;
           traces.push(_scatterTrace(sub, coords, is3d, {
             color: col, size: 3.6, opacity: 0.78,
-            name: lvl, showlegend: firstSub, symbol: symbols[ci],
+            name: lvl, showlegend: firstSub, symbol: symFor(symbols, ci),
           }));
           _baseOpacities.push(0.78);
           firstSub = false;
@@ -1429,7 +1442,7 @@ function buildTraces() {
           x: [null], y: [null], ...(is3d ? {z: [null]} : {}),
           mode: 'markers',
           marker: {size: is3d ? 5 : 8, color: '#555',
-                   symbol: phantomSyms[ci], line: {width: 0}},
+                   symbol: symFor(phantomSyms, ci), line: {width: 0}},
           name: phantomNames[ci],
           legendgroup: 'shape-key',
           showlegend: true, hoverinfo: 'skip',
@@ -1515,7 +1528,7 @@ function spotlightTraces(coords, is3d) {
     // selection never silently drops a visual variable
     if (state.shapes && state.color === 'content_type') {
       const symbols = is3d ? COMPANY_SYMBOLS_3D : COMPANY_SYMBOLS_2D;
-      marker.symbol = nbrs.map(i => symbols[DATA.company_of[i]]);
+      marker.symbol = nbrs.map(i => symFor(symbols, DATA.company_of[i]));
     } else if (state.shapes && state.color === 'company') {
       const regSymbols = is3d ? REGISTER_SYMBOLS_3D : REGISTER_SYMBOLS_2D;
       marker.symbol = nbrs.map(i => regSymbols[registerOf(i)]);
@@ -2378,7 +2391,7 @@ let _faithTimer = null;
 function scheduleFaithfulness() {
   const el = document.getElementById('faith-text');
   if (!el) return;
-  el.textContent = 'faithfulness: computing\u2026';
+  el.textContent = 'fidelity to original space: computing\u2026';
   clearTimeout(_faithTimer);
   _faithTimer = setTimeout(() => {
     try {
@@ -2394,10 +2407,10 @@ function scheduleFaithfulness() {
       } else if (cc.kind === 'reproj' && state.reproj) {
         varTxt = `${(state.reproj.varShare * 100).toFixed(0)}% of subset variance \u00b7 `;
       }
-      el.textContent = `this picture shows ${varTxt}Shepard r = ${
+      el.textContent = `fidelity to original space: ${varTxt}Shepard r = ${
         isNaN(r) ? '\u2014' : r.toFixed(2)}`;
     } catch (e) {
-      el.textContent = 'faithfulness: unavailable';
+      el.textContent = 'fidelity to original space: unavailable';
     }
   }, 250);
 }
@@ -2513,31 +2526,37 @@ const LEARN_CARDS = [
     body: `
       <p>The corpus is embedded in \u211D<sup>384</sup>; any display is a
       projection onto two or three dimensions. Below, points A and B are
-      at a fixed distance in the ambient space, while the distance
-      between their projections varies with the projection angle:</p>
+      at a fixed distance in the full space, while the distance between
+      their projections varies with the projection angle:</p>
       <svg class="proj-demo" id="proj-demo" width="480" height="250"
            viewBox="0 0 480 250"></svg>
       <p>PCA selects the directions of maximal variance; t-SNE and UMAP
       preserve local neighborhoods at the expense of global distances.
       Both are available in the Projection panel; the full parameter
-      grid is <a href="tsne_umap_viewer.html">on a separate page</a>.</p>`,
+      grid is <a href="__PREFIX__tsne_umap_viewer.html">on a separate
+      page</a>.</p>`,
   },
   {
     title: 'Neighbor computation',
     body: `
-      <p>Nearest neighbors are ranked by cosine similarity in the ambient
-      384-dimensional space, not in the displayed projection.</p>
-      <p>A spotlighted neighbor that appears distant on screen therefore
-      reflects projection error, not an error in the ranking.</p>`,
+      <p>Nearest neighbors are ranked by cosine similarity in the full
+      384-dimensional space, not in the displayed projection. Below, the
+      five nearest neighbors of the selected point are identified in
+      turn; the second-ranked neighbor lies far away <i>on screen</i>,
+      yet is genuinely nearby in the full space:</p>
+      <svg class="proj-demo" id="nbr-demo" width="480" height="200"
+           viewBox="0 0 480 200"></svg>
+      <p>A spotlighted neighbor that appears distant therefore reflects
+      projection error, not an error in the ranking.</p>`,
   },
   {
-    title: 'The faithfulness badge',
+    title: 'Fidelity to the original space',
     body: `
       <p>The badge above the plot reports two diagnostics of the current
       view: the fraction of total variance captured by the displayed
       axes, and the <b>Shepard correlation</b> \u2014 the correlation between
-      ambient and on-screen pairwise distances over sampled pairs of
-      passages:</p>
+      pairwise distances in the full space and on screen, over sampled
+      pairs of passages:</p>
       <svg class="proj-demo" id="shepard-demo" width="480" height="210"
            viewBox="0 0 480 210"></svg>
       <p>Both values update when the projection or the visible subset
@@ -2573,7 +2592,55 @@ function renderLearnCard() {
   if (document.getElementById('proj-demo')) startProjDemo();
   if (document.getElementById('shepard-demo')) startShepardDemo();
   if (document.getElementById('gir-demo')) startGirDemo();
+  if (document.getElementById('nbr-demo')) startNbrDemo();
   learnCard.focus();
+}
+
+// card 3: five true neighbors of a selected point are ringed in rank
+// order; rank 2 is deliberately placed far away on screen
+function startNbrDemo() {
+  const svg = document.getElementById('nbr-demo');
+  // background points (screen positions)
+  const BG = [[70,60],[110,140],[150,45],[190,110],[235,65],[265,150],
+              [300,40],[330,100],[395,55],[420,140],[85,165],[360,165]];
+  const SEL = [210, 88];                       // the selected passage
+  // neighbors in TRUE-space rank order; index into BG
+  const RANKS = [3, 8, 0, 5, 2];               // #2 (BG[8]) is far on screen
+  svg.innerHTML = `
+    <g id="nd-pts"></g>
+    <circle cx="${SEL[0]}" cy="${SEL[1]}" r="7" fill="#5b4b8a"/>
+    <text x="${SEL[0]}" y="${SEL[1] - 12}" font-size="11" text-anchor="middle"
+      fill="#5b4b8a">selected</text>
+    <g id="nd-rings"></g>
+    <text id="nd-note" x="240" y="192" font-size="11.5" text-anchor="middle"
+      fill="#6b6b76"></text>`;
+  const pts = svg.querySelector('#nd-pts');
+  pts.innerHTML = BG.map(p =>
+    `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#c9c2b4"/>`).join('');
+  const rings = svg.querySelector('#nd-rings');
+  const note = svg.querySelector('#nd-note');
+  function frame(ts) {
+    if (!document.getElementById('nbr-demo')) return;
+    const phase = Math.floor(ts / 1100) % (RANKS.length + 2);   // pause at end
+    const shown = Math.min(phase + 1, RANKS.length);
+    let html = '';
+    for (let r = 0; r < shown; r++) {
+      const p = BG[RANKS[r]];
+      const hot = r === shown - 1 && phase < RANKS.length;
+      html += `<line x1="${SEL[0]}" y1="${SEL[1]}" x2="${p[0]}" y2="${p[1]}"
+        stroke="#d8cfc0" stroke-width="1" stroke-dasharray="3 3"/>`;
+      html += `<circle cx="${p[0]}" cy="${p[1]}" r="${hot ? 9 : 7}"
+        fill="none" stroke="#a45a1e" stroke-width="${hot ? 2 : 1.4}"/>`;
+      html += `<text x="${p[0]}" y="${p[1] - 12}" font-size="11"
+        text-anchor="middle" fill="#a45a1e">${r + 1}</text>`;
+    }
+    rings.innerHTML = html;
+    note.textContent = (shown >= 2)
+      ? 'rank 2 is distant on screen \u2014 and second-closest in the full space'
+      : 'ranking neighbors in the full 384-dimensional space \u2026';
+    _projDemoRAF = requestAnimationFrame(frame);
+  }
+  _projDemoRAF = requestAnimationFrame(frame);
 }
 
 // card 1: the 12 disclosure types drift in a slow ring; each takes a
@@ -2939,31 +3006,32 @@ nav.sue-nav .sep { color: var(--muted); }
 """
 
 
-def _industry_pages() -> List[tuple]:
-    """(display_name, href) pairs for every ingested industry.
+def _industry_pages(prefix: str = "") -> List[tuple]:
+    """(display_name, href) pairs for every corpus with a full viewer.
 
-    The flagship viewer covers the Semiconductor Equipment corpus; any
-    industry ingested via scripts/ingest_industry.py + plot_industry.py
-    contributes a first-look page under docs/industries/.
+    Any industry ingested via scripts/ingest_industry.py and built with
+    `build_semantic_universe_explorer.py --corpus <slug>` gets a full
+    flagship viewer at docs/industries/<slug>.html.
     """
-    pages = [("Semiconductor Equipment", "semantic_universe_explorer.html")]
+    pages = [("Semiconductor Equipment",
+              f"{prefix}semantic_universe_explorer.html")]
     ind_dir = ROOT / "data" / "industries"
     if ind_dir.exists():
         for src in sorted(ind_dir.glob("*_sources.json")):
             slug = src.name[: -len("_sources.json")]
-            if not (DOCS / "industries" / f"{slug}_3d.html").exists():
+            if not (ROOT / "assets" / "industries" / slug / "chunks.parquet").exists():
                 continue
             try:
                 name = json.loads(src.read_text(encoding="utf-8"))["industry"]
             except Exception:
                 name = slug.replace("_", " ").title()
-            pages.append((name, f"industries/{slug}_3d.html"))
+            pages.append((name, f"{prefix}industries/{slug}.html"))
     return pages
 
 
-def _industry_dropdown(current_href: str = "semantic_universe_explorer.html") -> str:
-    """A <select> that jumps between per-industry viewer pages."""
-    pages = _industry_pages()
+def _industry_dropdown(current_href: str, prefix: str = "") -> str:
+    """A <select> that jumps between per-industry full viewers."""
+    pages = _industry_pages(prefix)
     if len(pages) < 2:
         return ""
     opts = []
@@ -2978,12 +3046,14 @@ def _industry_dropdown(current_href: str = "semantic_universe_explorer.html") ->
     )
 
 
-def _nav_bar(current: str = "") -> str:
-    """Top-of-page navigation linking the three SUE pages together.
+def _nav_bar(current: str = "", prefix: str = "",
+             current_href: str = "semantic_universe_explorer.html") -> str:
+    """Top-of-page navigation linking the SUE pages together.
 
-    `current` is one of "viewer", "walkthru", "math" and controls which
-    link is styled as the active page. On the viewer page the bar also
-    carries the industry dropdown.
+    `current` is one of "viewer", "tsne", "walkthru", "math" and controls
+    which link is styled as the active page. On viewer pages the bar also
+    carries the industry dropdown. `prefix` relativizes links for pages
+    that live under docs/industries/.
     """
     items = [
         ("viewer",   "Interactive viewer",  "semantic_universe_explorer.html"),
@@ -2996,9 +3066,9 @@ def _nav_bar(current: str = "") -> str:
         if i > 0:
             parts.append('<span class="sep">\u00b7</span>')
         cls = ' class="current"' if key == current else ""
-        parts.append(f'<a{cls} href="{href}">{escape(label)}</a>')
+        parts.append(f'<a{cls} href="{prefix}{href}">{escape(label)}</a>')
     if current == "viewer":
-        parts.append(_industry_dropdown())
+        parts.append(_industry_dropdown(current_href, prefix))
     return '<nav class="sue-nav">' + " ".join(parts) + '</nav>'
 
 
@@ -3432,9 +3502,9 @@ def _render_readme(companies: List[str]) -> str:
                  if "emo7bf" in REPO_URL else "docs/math_and_statistics.html")
     tsne_umap_html = ("https://emo7bf.github.io/SUE/tsne_umap_viewer.html"
                       if "emo7bf" in REPO_URL else "docs/tsne_umap_viewer.html")
-    aero_html = ("https://emo7bf.github.io/SUE/industries/aerospace_defense_3d.html"
+    aero_html = ("https://emo7bf.github.io/SUE/industries/aerospace_defense.html"
                  if "emo7bf" in REPO_URL
-                 else "docs/industries/aerospace_defense_3d.html")
+                 else "docs/industries/aerospace_defense.html")
 
     return f"""# Semantic Universe Explorer \u2014 SUE
 
@@ -3451,8 +3521,8 @@ def _render_readme(companies: List[str]) -> str:
 - **[t-SNE & UMAP viewers]({tsne_umap_html})** \u2014 the same corpus through
   neighborhood-preserving projections, every perplexity / n_neighbors
   setting switchable in place
-- **[Aerospace & Defense first look]({aero_html})** \u2014 a second industry:
-  16 companies, 37 reports, 3,371 passages
+- **[Aerospace & Defense viewer]({aero_html})** \u2014 a second industry with
+  the full explorer: 16 companies, 37 reports, 3,371 passages
 - **Guided intro cards** \u2014 the viewer now opens with a short learning
   deck (what a Global Impact Report is, and why one projection is never
   the whole truth), reopenable via the *Guide* button
@@ -3572,10 +3642,60 @@ def _copy_figures_into_docs() -> None:
     print(f"  copied {len(_FIGURES_TO_PUBLISH)} figures \\u2192 {DOCS_FIGURES}")
 
 
+def _load_corpus(corpus: str):
+    """Return (df, X, meta) for the requested corpus.
+
+    "semiconductors" is the flagship corpus under assets/; any other
+    value is an industry slug under assets/industries/<slug>/ produced
+    by scripts/ingest_industry.py.
+    """
+    if corpus == "semiconductors":
+        df, X = load_cached()
+        return df, X, {
+            "name": "Semiconductor Equipment",
+            "out_html": OUT_HTML,
+            "prefix": "",
+            "current_href": "semantic_universe_explorer.html",
+            "proj_cache": _PROJECTIONS_CACHE,
+            "primary": True,
+        }
+    cache = ROOT / "assets" / "industries" / corpus
+    if not (cache / "chunks.parquet").exists():
+        raise SystemExit(f"missing {cache / 'chunks.parquet'}; "
+                         "run scripts/ingest_industry.py first")
+    df = pd.read_parquet(cache / "chunks.parquet").reset_index(drop=True)
+    X = np.load(cache / "embeddings.npy").astype(np.float32)
+    if len(df) != len(X):
+        raise SystemExit("chunks.parquet / embeddings.npy row mismatch")
+    # Column parity with the flagship corpus: the viewer expects `page`,
+    # and per-chunk source URLs stand in for data/pdf_urls.json.
+    if "page" not in df.columns and "page_start" in df.columns:
+        df["page"] = df["page_start"]
+    src_file = ROOT / "data" / "industries" / f"{corpus}_sources.json"
+    name = (json.loads(src_file.read_text(encoding="utf-8"))["industry"]
+            if src_file.exists() else corpus.replace("_", " ").title())
+    return df, X, {
+        "name": name,
+        "out_html": DOCS / "industries" / f"{corpus}.html",
+        "prefix": "../",
+        "current_href": f"../industries/{corpus}.html",
+        "proj_cache": cache / "projections_cache.npz",
+        "primary": False,
+    }
+
+
 def main():
-    print("Loading cached corpus ...")
-    df, X = load_cached()
-    print(f"  {len(df):,} chunks x {X.shape[1]}-dim embeddings")
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--corpus", default="semiconductors",
+                    help="'semiconductors' (flagship) or an industry slug "
+                         "under assets/industries/")
+    args = ap.parse_args()
+
+    print(f"Loading corpus: {args.corpus} ...")
+    df, X, meta = _load_corpus(args.corpus)
+    print(f"  {len(df):,} chunks x {X.shape[1]}-dim embeddings"
+          f"  ({meta['name']})")
 
     print("Computing 2D + 3D PCA ...")
     p2 = PCA(n_components=2, random_state=0).fit(X)
@@ -3633,7 +3753,7 @@ def main():
     # The flagship viewer carries two settings per method (the dedicated
     # tsne_umap_viewer.html page has the full four-setting grid); each
     # layout is centered and scaled so the plot ranges stay comparable.
-    alt_all = compute_alt_projections(X)
+    alt_all = compute_alt_projections(X, cache_path=meta["proj_cache"])
     _FLAGSHIP_ALT_KEYS = [
         "tsne_p30_d3", "tsne_p30_d2", "tsne_p100_d3", "tsne_p100_d2",
         "umap_n15_d3", "umap_n15_d2", "umap_n50_d3", "umap_n50_d2",
@@ -3669,17 +3789,23 @@ def main():
     def _snip(t: str) -> str:
         return (t or "")[:1200]
 
-    # Optional PDF-URL map: {pdf_filename: canonical_url}. Missing file =>
-    # no link (inspector falls back to just showing the doc name).
+    # Optional PDF-URL map: {pdf_filename: canonical_url}. For industry
+    # corpora the per-chunk source_url column (from the downloads
+    # manifest) supplies the same information.
     pdf_urls: dict = {}
-    if PDF_URLS_JSON.exists():
+    if meta["primary"] and PDF_URLS_JSON.exists():
         try:
             pdf_urls = json.loads(PDF_URLS_JSON.read_text(encoding="utf-8"))
         except Exception as e:
             print(f"  ! could not parse {PDF_URLS_JSON}: {e}")
             pdf_urls = {}
+    elif "source_url" in df.columns:
+        for doc, grp in df.groupby("doc"):
+            url = str(grp["source_url"].iloc[0] or "")
+            if url:
+                pdf_urls[str(doc)] = url
     filled = sum(1 for v in pdf_urls.values() if v)
-    print(f"  pdf_urls.json: {filled}/{len(pdf_urls)} URLs filled in")
+    print(f"  pdf urls: {filled}/{df['doc'].nunique()} documents linked")
 
     has_pages = "page" in df.columns
     if not has_pages:
@@ -3754,12 +3880,22 @@ def main():
     data_json = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
     print("Rendering main HTML ...")
+    out_html = meta["out_html"]
     html = (_HTML
             .replace("__DATA_JSON__", data_json)
-            .replace("__NAV_BAR__", _nav_bar("viewer"))
+            .replace("__NAV_BAR__", _nav_bar("viewer", meta["prefix"],
+                                             meta["current_href"]))
+            .replace("__CORPUS_NAME__", escape(meta["name"]))
+            .replace("__PREFIX__", meta["prefix"])
             .replace("__REPO_URL__", REPO_URL))
-    OUT_HTML.write_text(html, encoding="utf-8")
-    print(f"wrote {OUT_HTML}  ({OUT_HTML.stat().st_size / 1024:.1f} KB)")
+    out_html.parent.mkdir(parents=True, exist_ok=True)
+    out_html.write_text(html, encoding="utf-8")
+    print(f"wrote {out_html}  ({out_html.stat().st_size / 1024:.1f} KB)")
+
+    if not meta["primary"]:
+        # Companion pages (walk-through, math, README) document the
+        # flagship corpus; industry builds stop at the viewer.
+        return
 
     print("Copying paper figures into docs/figures/ ...")
     _copy_figures_into_docs()

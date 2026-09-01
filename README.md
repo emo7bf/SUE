@@ -13,8 +13,8 @@
 - **[t-SNE & UMAP viewers](https://emo7bf.github.io/SUE/tsne_umap_viewer.html)** — the same corpus through
   neighborhood-preserving projections, every perplexity / n_neighbors
   setting switchable in place
-- **[Aerospace & Defense first look](https://emo7bf.github.io/SUE/industries/aerospace_defense_3d.html)** — a second industry:
-  16 companies, 37 reports, 3,371 passages
+- **[Aerospace & Defense viewer](https://emo7bf.github.io/SUE/industries/aerospace_defense.html)** — a second industry with
+  the full explorer: 16 companies, 37 reports, 3,371 passages
 - **Guided intro cards** — the viewer now opens with a short learning
   deck (what a Global Impact Report is, and why one projection is never
   the whole truth), reopenable via the *Guide* button

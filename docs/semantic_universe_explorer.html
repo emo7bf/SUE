@@ -248,8 +248,10 @@
 <body>
 
 <header class="page-header">
-  <nav class="sue-nav"><a class="current" href="semantic_universe_explorer.html">Interactive viewer</a> <span class="sep">·</span> <a href="tsne_umap_viewer.html">t-SNE / UMAP</a> <span class="sep">·</span> <a href="sue_walkthru.html">Walk-through</a> <span class="sep">·</span> <a href="math_and_statistics.html">Math &amp; statistics</a> <span class="sep">·</span> <label style="display:inline-flex;gap:6px;align-items:center;">Industry <select onchange="if(this.value)window.location.href=this.value"><option value="semantic_universe_explorer.html" selected>Semiconductor Equipment</option><option value="industries/aerospace_defense_3d.html">Aerospace &amp; Defense</option></select></label></nav>
+  <nav class="sue-nav"><a class="current" href="semantic_universe_explorer.html">Interactive viewer</a> <span class="sep">·</span> <a href="tsne_umap_viewer.html">t-SNE / UMAP</a> <span class="sep">·</span> <a href="sue_walkthru.html">Walk-through</a> <span class="sep">·</span> <a href="math_and_statistics.html">Math &amp; statistics</a> <span class="sep">·</span> <label style="display:inline-flex;gap:6px;align-items:center;">Industry <select onchange="if(this.value)window.location.href=this.value"><option value="semantic_universe_explorer.html" selected>Semiconductor Equipment</option><option value="industries/aerospace_defense.html">Aerospace &amp; Defense</option></select></label></nav>
   <h1>Semantic Universe Explorer <span class="accent">&mdash; SUE</span>
+    <span style="font-size:14px;color:var(--muted);font-weight:400;
+      margin-left:10px;">Semiconductor Equipment</span>
     <button id="learn-reopen" type="button"
       title="Reopen the guided introduction cards">Guide</button></h1>
 </header>
@@ -398,7 +400,7 @@
        z-index:20;background:var(--panel);border:1px solid var(--border);
        border-radius:999px;padding:4px 12px;font-size:11.5px;
        color:var(--muted);box-shadow:0 2px 6px rgba(0,0,0,.06);">
-    <span id="faith-text">faithfulness: computing…</span>
+    <span id="faith-text">fidelity to original space: computing…</span>
     <button id="faith-info" type="button" title="What do these numbers mean?"
       style="border:none;background:none;color:var(--learn);cursor:pointer;
       font-size:12px;padding:0 0 0 4px;">ⓘ</button>
@@ -556,8 +558,16 @@ function colorValues(mode) {
 // Marker symbols keyed by company index for the "content_type" color
 // mode: color encodes category, shape encodes company. Order matches
 // DATA.companies (alphabetised at build time: AMAT, ASML, KLA, Lam, TEL).
-const COMPANY_SYMBOLS_3D = ['circle', 'diamond', 'square', 'cross', 'x'];
-const COMPANY_SYMBOLS_2D = ['circle', 'diamond', 'square', 'cross', 'x'];
+// 3-D plots offer eight marker symbols; 2-D offers many more. Company
+// index wraps around when a corpus has more companies than symbols.
+const COMPANY_SYMBOLS_3D = ['circle', 'diamond', 'square', 'cross', 'x',
+                            'circle-open', 'diamond-open', 'square-open'];
+const COMPANY_SYMBOLS_2D = ['circle', 'diamond', 'square', 'cross', 'x',
+                            'triangle-up', 'triangle-down', 'star',
+                            'hexagon', 'pentagon', 'bowtie', 'hourglass',
+                            'star-square', 'hexagram', 'diamond-tall',
+                            'star-diamond'];
+function symFor(symbols, ci) { return symbols[ci % symbols.length]; }
 
 function palette(i) { return DATA.palette[i % DATA.palette.length]; }
 
@@ -688,7 +698,7 @@ function buildTraces() {
         // (category, company) pair can carry its own marker symbol.
         // Only the first sub-trace shows in the legend so the legend
         // stays a clean 12-entry list, not 60.
-        const byCompany = symbols.map(() => []);
+        const byCompany = DATA.companies.map(() => []);
         for (const i of idx) byCompany[DATA.company_of[i]].push(i);
         let firstSub = true;
         for (let ci = 0; ci < byCompany.length; ci++) {
@@ -696,7 +706,7 @@ function buildTraces() {
           if (!sub.length) continue;
           traces.push(_scatterTrace(sub, coords, is3d, {
             color: col, size: 3.6, opacity: 0.78,
-            name: lvl, showlegend: firstSub, symbol: symbols[ci],
+            name: lvl, showlegend: firstSub, symbol: symFor(symbols, ci),
           }));
           _baseOpacities.push(0.78);
           firstSub = false;
@@ -738,7 +748,7 @@ function buildTraces() {
           x: [null], y: [null], ...(is3d ? {z: [null]} : {}),
           mode: 'markers',
           marker: {size: is3d ? 5 : 8, color: '#555',
-                   symbol: phantomSyms[ci], line: {width: 0}},
+                   symbol: symFor(phantomSyms, ci), line: {width: 0}},
           name: phantomNames[ci],
           legendgroup: 'shape-key',
           showlegend: true, hoverinfo: 'skip',
@@ -824,7 +834,7 @@ function spotlightTraces(coords, is3d) {
     // selection never silently drops a visual variable
     if (state.shapes && state.color === 'content_type') {
       const symbols = is3d ? COMPANY_SYMBOLS_3D : COMPANY_SYMBOLS_2D;
-      marker.symbol = nbrs.map(i => symbols[DATA.company_of[i]]);
+      marker.symbol = nbrs.map(i => symFor(symbols, DATA.company_of[i]));
     } else if (state.shapes && state.color === 'company') {
       const regSymbols = is3d ? REGISTER_SYMBOLS_3D : REGISTER_SYMBOLS_2D;
       marker.symbol = nbrs.map(i => regSymbols[registerOf(i)]);
@@ -1687,7 +1697,7 @@ let _faithTimer = null;
 function scheduleFaithfulness() {
   const el = document.getElementById('faith-text');
   if (!el) return;
-  el.textContent = 'faithfulness: computing…';
+  el.textContent = 'fidelity to original space: computing…';
   clearTimeout(_faithTimer);
   _faithTimer = setTimeout(() => {
     try {
@@ -1703,10 +1713,10 @@ function scheduleFaithfulness() {
       } else if (cc.kind === 'reproj' && state.reproj) {
         varTxt = `${(state.reproj.varShare * 100).toFixed(0)}% of subset variance · `;
       }
-      el.textContent = `this picture shows ${varTxt}Shepard r = ${
+      el.textContent = `fidelity to original space: ${varTxt}Shepard r = ${
         isNaN(r) ? '—' : r.toFixed(2)}`;
     } catch (e) {
-      el.textContent = 'faithfulness: unavailable';
+      el.textContent = 'fidelity to original space: unavailable';
     }
   }, 250);
 }
@@ -1822,31 +1832,37 @@ const LEARN_CARDS = [
     body: `
       <p>The corpus is embedded in ℝ<sup>384</sup>; any display is a
       projection onto two or three dimensions. Below, points A and B are
-      at a fixed distance in the ambient space, while the distance
-      between their projections varies with the projection angle:</p>
+      at a fixed distance in the full space, while the distance between
+      their projections varies with the projection angle:</p>
       <svg class="proj-demo" id="proj-demo" width="480" height="250"
            viewBox="0 0 480 250"></svg>
       <p>PCA selects the directions of maximal variance; t-SNE and UMAP
       preserve local neighborhoods at the expense of global distances.
       Both are available in the Projection panel; the full parameter
-      grid is <a href="tsne_umap_viewer.html">on a separate page</a>.</p>`,
+      grid is <a href="tsne_umap_viewer.html">on a separate
+      page</a>.</p>`,
   },
   {
     title: 'Neighbor computation',
     body: `
-      <p>Nearest neighbors are ranked by cosine similarity in the ambient
-      384-dimensional space, not in the displayed projection.</p>
-      <p>A spotlighted neighbor that appears distant on screen therefore
-      reflects projection error, not an error in the ranking.</p>`,
+      <p>Nearest neighbors are ranked by cosine similarity in the full
+      384-dimensional space, not in the displayed projection. Below, the
+      five nearest neighbors of the selected point are identified in
+      turn; the second-ranked neighbor lies far away <i>on screen</i>,
+      yet is genuinely nearby in the full space:</p>
+      <svg class="proj-demo" id="nbr-demo" width="480" height="200"
+           viewBox="0 0 480 200"></svg>
+      <p>A spotlighted neighbor that appears distant therefore reflects
+      projection error, not an error in the ranking.</p>`,
   },
   {
-    title: 'The faithfulness badge',
+    title: 'Fidelity to the original space',
     body: `
       <p>The badge above the plot reports two diagnostics of the current
       view: the fraction of total variance captured by the displayed
       axes, and the <b>Shepard correlation</b> — the correlation between
-      ambient and on-screen pairwise distances over sampled pairs of
-      passages:</p>
+      pairwise distances in the full space and on screen, over sampled
+      pairs of passages:</p>
       <svg class="proj-demo" id="shepard-demo" width="480" height="210"
            viewBox="0 0 480 210"></svg>
       <p>Both values update when the projection or the visible subset
@@ -1882,7 +1898,55 @@ function renderLearnCard() {
   if (document.getElementById('proj-demo')) startProjDemo();
   if (document.getElementById('shepard-demo')) startShepardDemo();
   if (document.getElementById('gir-demo')) startGirDemo();
+  if (document.getElementById('nbr-demo')) startNbrDemo();
   learnCard.focus();
+}
+
+// card 3: five true neighbors of a selected point are ringed in rank
+// order; rank 2 is deliberately placed far away on screen
+function startNbrDemo() {
+  const svg = document.getElementById('nbr-demo');
+  // background points (screen positions)
+  const BG = [[70,60],[110,140],[150,45],[190,110],[235,65],[265,150],
+              [300,40],[330,100],[395,55],[420,140],[85,165],[360,165]];
+  const SEL = [210, 88];                       // the selected passage
+  // neighbors in TRUE-space rank order; index into BG
+  const RANKS = [3, 8, 0, 5, 2];               // #2 (BG[8]) is far on screen
+  svg.innerHTML = `
+    <g id="nd-pts"></g>
+    <circle cx="${SEL[0]}" cy="${SEL[1]}" r="7" fill="#5b4b8a"/>
+    <text x="${SEL[0]}" y="${SEL[1] - 12}" font-size="11" text-anchor="middle"
+      fill="#5b4b8a">selected</text>
+    <g id="nd-rings"></g>
+    <text id="nd-note" x="240" y="192" font-size="11.5" text-anchor="middle"
+      fill="#6b6b76"></text>`;
+  const pts = svg.querySelector('#nd-pts');
+  pts.innerHTML = BG.map(p =>
+    `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#c9c2b4"/>`).join('');
+  const rings = svg.querySelector('#nd-rings');
+  const note = svg.querySelector('#nd-note');
+  function frame(ts) {
+    if (!document.getElementById('nbr-demo')) return;
+    const phase = Math.floor(ts / 1100) % (RANKS.length + 2);   // pause at end
+    const shown = Math.min(phase + 1, RANKS.length);
+    let html = '';
+    for (let r = 0; r < shown; r++) {
+      const p = BG[RANKS[r]];
+      const hot = r === shown - 1 && phase < RANKS.length;
+      html += `<line x1="${SEL[0]}" y1="${SEL[1]}" x2="${p[0]}" y2="${p[1]}"
+        stroke="#d8cfc0" stroke-width="1" stroke-dasharray="3 3"/>`;
+      html += `<circle cx="${p[0]}" cy="${p[1]}" r="${hot ? 9 : 7}"
+        fill="none" stroke="#a45a1e" stroke-width="${hot ? 2 : 1.4}"/>`;
+      html += `<text x="${p[0]}" y="${p[1] - 12}" font-size="11"
+        text-anchor="middle" fill="#a45a1e">${r + 1}</text>`;
+    }
+    rings.innerHTML = html;
+    note.textContent = (shown >= 2)
+      ? 'rank 2 is distant on screen — and second-closest in the full space'
+      : 'ranking neighbors in the full 384-dimensional space …';
+    _projDemoRAF = requestAnimationFrame(frame);
+  }
+  _projDemoRAF = requestAnimationFrame(frame);
 }
 
 // card 1: the 12 disclosure types drift in a slow ring; each takes a
