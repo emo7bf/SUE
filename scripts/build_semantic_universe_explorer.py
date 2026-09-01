@@ -699,20 +699,80 @@ _HTML = """<!DOCTYPE html>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <style>
   :root {
-    --bg: #f7f7f8;
-    --panel: #ffffff;
-    --border: #d9d9de;
-    --text: #1e1e22;
-    --muted: #55575c;
+    --bg: #faf7f2;          /* warm, reader-friendly ecru */
+    --panel: #fffdf9;
+    --border: #e4ddd2;
+    --text: #2b2b33;
+    --muted: #6b6b76;
     --accent: #a45a1e;
     --accent2: #4a6a8a;
     --highlight: #fff5e0;
+    --learn: #5b4b8a;       /* night-school lavender */
+    --learn-soft: #8ca252;  /* night-school sage */
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--bg);
                color: var(--text); font-family: -apple-system, "Segoe UI",
                Roboto, "Helvetica Neue", Arial, sans-serif;
                font-size: 14px; line-height: 1.45; }
+
+  /* ---------- learning cards (guided intro overlay) ---------- */
+  #learn-overlay {
+    position: fixed; inset: 0; z-index: 900;
+    background: rgba(43, 43, 51, 0.28);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #learn-overlay.hidden { display: none; }
+  .learn-card {
+    width: min(560px, 92vw); max-height: 86vh; overflow-y: auto;
+    background: var(--panel); border: 1px solid var(--border);
+    border-top: 5px solid var(--learn); border-radius: 14px;
+    box-shadow: 0 14px 44px rgba(43,43,51,.25);
+    padding: 26px 30px 18px;
+    font-family: Georgia, 'Times New Roman', serif;
+    animation: learn-in .34s ease-out;
+  }
+  @keyframes learn-in {
+    from { opacity: 0; transform: translateY(14px) scale(.985); }
+    to   { opacity: 1; transform: none; }
+  }
+  .learn-card h2 { margin: 0 0 10px; font-size: 20px; color: var(--learn);
+                   line-height: 1.3; }
+  .learn-card .new-pill {
+    display: inline-block; background: var(--learn-soft); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    padding: 2px 9px; border-radius: 999px; vertical-align: middle;
+    margin-right: 8px; font-family: -apple-system, "Segoe UI", sans-serif;
+  }
+  .learn-card p { font-size: 14.5px; line-height: 1.62; margin: 9px 0; }
+  .learn-card a { color: var(--accent2); }
+  .learn-card .learn-foot {
+    display: flex; align-items: center; gap: 10px; margin-top: 16px;
+    border-top: 1px solid var(--border); padding-top: 12px;
+    font-family: -apple-system, "Segoe UI", sans-serif;
+  }
+  .learn-dots { display: flex; gap: 6px; margin-right: auto; }
+  .learn-dots span { width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); transition: background .2s; }
+  .learn-dots span.on { background: var(--learn); }
+  .learn-btn {
+    font-size: 13px; padding: 5px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel);
+    cursor: pointer; color: var(--text);
+  }
+  .learn-btn.primary { background: var(--learn); border-color: var(--learn);
+                       color: #fff; }
+  .learn-btn:disabled { opacity: .4; cursor: default; }
+  .learn-kbd { font-size: 11.5px; color: var(--muted); }
+  #learn-reopen {
+    font-size: 12px; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--learn); background: var(--panel);
+    color: var(--learn); cursor: pointer; margin-left: 12px;
+    vertical-align: middle;
+  }
+  #learn-reopen:hover { background: var(--learn); color: #fff; }
+  .proj-demo { display: block; margin: 8px auto 0; }
+  .proj-demo text { font-family: Georgia, serif; }
   /* Slim top strip: nav at the very top, page title below. Plain colours,
      no highlighter background. */
   header.page-header {
@@ -880,8 +940,17 @@ _HTML = """<!DOCTYPE html>
 
 <header class="page-header">
   __NAV_BAR__
-  <h1>Semantic Universe Explorer <span class="accent">&mdash; SUE</span></h1>
+  <h1>Semantic Universe Explorer <span class="accent">&mdash; SUE</span>
+    <button id="learn-reopen" type="button"
+      title="Reopen the guided introduction cards">Guide</button></h1>
 </header>
+
+<!-- ---------- learning cards: a guided intro the reader can page through
+     (click, Tab, or arrow keys). Shown automatically on first visit;
+     reopenable any time via the Guide button. ---------- -->
+<div id="learn-overlay" class="hidden" role="dialog" aria-modal="true">
+  <div class="learn-card" id="learn-card" tabindex="0"></div>
+</div>
 
 <div class="app">
 
@@ -913,9 +982,15 @@ _HTML = """<!DOCTYPE html>
     <label><input type="radio" name="color" value="cluster"> Unsupervised cluster (GMM)</label>
     <label style="margin-top:6px;"><input type="checkbox" id="shapes-toggle" checked>
       Marker shapes carry a second variable</label>
+    <button id="swap-encoding" class="sel-btn" type="button"
+      style="margin-top:6px;width:100%;"
+      title="Flip which variable is color and which is shape">
+      \u21C4 Swap color &harr; shape</button>
     <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35;" id="shape-hint">
-      Content-type mode: shape = company. Company mode: shape =
-      prose / ambiguous / tabular register. Untick to use plain dots.
+      Content-type mode: color = category, shape = company. Swapped:
+      color = company, shape = prose / ambiguous / tabular register
+      (3-D plots offer too few shapes to carry all 12 categories).
+      Untick the box for plain dots.
     </div>
   </div>
 
@@ -979,7 +1054,9 @@ _HTML = """<!DOCTYPE html>
        scale means. Kept below the plot (bottom-center) so it's visible
        whichever color mode is active, without cluttering the sidebar. -->
   <div id="color-legend" class="color-legend"></div>
-  <div class="coming-soon">Coming soon: interactive t-SNE and UMAP viewers.</div>
+  <div class="coming-soon"><b>New:</b>
+    <a href="tsne_umap_viewer.html">interactive t-SNE &amp; UMAP viewers</a>
+    &mdash; the same corpus through neighborhood-preserving lenses.</div>
 </main>
 
 <aside class="right-col">
@@ -1343,6 +1420,15 @@ function spotlightTraces(coords, is3d) {
       cmap[lvl] = (typeof c.colorFor === 'function') ? c.colorFor(lvl) : palette(k);
     });
     marker.color = nbrs.map(i => cmap[c.values[i]]);
+    // keep the active shape encoding on the spotlit neighbors, so a
+    // selection never silently drops a visual variable
+    if (state.shapes && state.color === 'content_type') {
+      const symbols = is3d ? COMPANY_SYMBOLS_3D : COMPANY_SYMBOLS_2D;
+      marker.symbol = nbrs.map(i => symbols[DATA.company_of[i]]);
+    } else if (state.shapes && state.color === 'company') {
+      const regSymbols = is3d ? REGISTER_SYMBOLS_3D : REGISTER_SYMBOLS_2D;
+      marker.symbol = nbrs.map(i => regSymbols[registerOf(i)]);
+    }
   } else {
     marker.color = nbrs.map(i => c.values[i]);
     marker.colorscale = c.cscale;
@@ -1651,6 +1737,10 @@ function updateInspector() {
         <span class="k-value" id="k-value">${state.K}</span>
         nearest neighbors of this point</label>
       <input type="range" id="k-slider" min="5" max="${kMax}" value="${state.K}">
+      <div class="meta" style="font-size:11px;line-height:1.4;margin-top:4px;">
+        Neighbors are ranked in the original 384-dimensional space;
+        the projection cannot preserve every distance, so true neighbors
+        may sit visually far away.</div>
     </div>
     <button class="report-btn" id="report-btn" type="button"
             title="Open a readable report of this chunk plus its K nearest neighbours (with per-chunk context) in a new tab">
@@ -1877,6 +1967,21 @@ document.getElementById('shapes-toggle').addEventListener('change', (e) => {
   state.shapes = e.target.checked;
   redraw();
 });
+
+// swap which variable rides on color vs. shape. The two paired encodings
+// are (color=category, shape=company) and (color=company, shape=register);
+// from any other color mode the button returns to the category pairing.
+document.getElementById('swap-encoding').addEventListener('click', () => {
+  pushHistory();
+  state.color = (state.color === 'content_type') ? 'company' : 'content_type';
+  state.shapes = true;
+  const radio = document.querySelector(
+    'input[name=color][value="' + state.color + '"]');
+  if (radio) radio.checked = true;
+  const st = document.getElementById('shapes-toggle');
+  if (st) st.checked = true;
+  redraw();
+});
 document.getElementById('undo-selection').addEventListener('click', undoLast);
 document.getElementById('clear-selection').addEventListener('click', clearSelection);
 
@@ -1983,6 +2088,203 @@ plotEl.on('plotly_click', (e) => {
     selectIndex(pt.customdata);
   }
 });
+
+// ---------- learning cards ----------
+// A small guided introduction the reader pages through with click, Tab,
+// or arrow keys. Card 3 carries a live geometric demonstration: five
+// points in the plane are projected onto a slowly rotating line (their
+// "shadows"); the highlighted pair keeps a constant TRUE distance while
+// the shadow distance swings \u2014 which is exactly why nearest neighbors
+// in the full 384-D space need not look nearest in any projection.
+const LEARN_CARDS = [
+  {
+    title: 'What is a Global Impact Report?',
+    body: `
+      <p>A <b>Global Impact Report</b> \u2014 also published as a Sustainability,
+      ESG, or Integrated Report \u2014 is the annual document in which a
+      corporation accounts for its environmental, social, and governance
+      record: emissions, water, workforce, safety, supply-chain ethics,
+      board oversight.</p>
+      <p>This explorer takes such reports from direct competitors, splits
+      them into passages of roughly 900 characters, and embeds every
+      passage into a shared geometric space where <b>distance means
+      semantic similarity</b>. Each point below is one passage; passages
+      about the same subject sit near one another regardless of which
+      company wrote them. That shared space is what makes the corpus
+      clusterable, comparable, and explorable.</p>`,
+  },
+  {
+    title: '<span class="new-pill">NEW</span> t-SNE &amp; UMAP viewers',
+    body: `
+      <p>The main view projects the corpus with <b>PCA</b>. Two further
+      lenses are now available: <a href="tsne_umap_viewer.html">interactive
+      t-SNE and UMAP viewers</a>, with every perplexity and neighborhood
+      setting switchable in place.</p>
+      <p>They exist because no single projection tells the whole truth \u2014
+      the next card shows why in thirty seconds.</p>`,
+  },
+  {
+    title: 'Why more than one projection?',
+    body: `
+      <p>The corpus lives in 384 dimensions; your screen has two or three. Every
+      picture is therefore a <b>shadow</b>, and shadows drop information.
+      Watch the two highlighted points: their <b>true distance never
+      changes</b>, yet their shadows drift apart and together as the
+      projection angle turns.</p>
+      <svg class="proj-demo" id="proj-demo" width="480" height="240"
+           viewBox="0 0 480 240"></svg>
+      <p style="font-size:13px;color:var(--muted)">PCA fixes one angle \u2014 the one
+      preserving the most overall spread. t-SNE and UMAP instead work to seat
+      true neighbors side by side, at the cost of long-range distances.
+      Structure that survives every lens is a property of the data.</p>`,
+  },
+  {
+    title: 'Did you know?',
+    body: `
+      <p>When you click a passage, its <b>nearest neighbors are computed in
+      the original 384-dimensional space</b> \u2014 the full representation,
+      not the picture. Spotlit neighbors may therefore sit visually far
+      away; that is the projection\u2019s omission, not an error.</p>
+      <p>The spotlight exists precisely to show what no projection can:
+      the true neighborhood of a passage. Hover any point for its source
+      report and page; click <i>Neighborhood report</i> for a readable
+      side-by-side of a passage and its closest company across the whole
+      corpus.</p>`,
+  },
+];
+
+let learnIdx = 0;
+let _projDemoRAF = null;
+const learnOverlay = document.getElementById('learn-overlay');
+const learnCard = document.getElementById('learn-card');
+
+function renderLearnCard() {
+  const c = LEARN_CARDS[learnIdx];
+  const last = learnIdx === LEARN_CARDS.length - 1;
+  learnCard.innerHTML = `
+    <h2>${c.title}</h2>${c.body}
+    <div class="learn-foot">
+      <div class="learn-dots">${LEARN_CARDS.map((_, i) =>
+        `<span class="${i === learnIdx ? 'on' : ''}"></span>`).join('')}</div>
+      <span class="learn-kbd">\u2190 \u2192 or click \u00b7 Esc closes</span>
+      <button class="learn-btn" id="learn-prev" ${learnIdx === 0 ? 'disabled' : ''}>Back</button>
+      <button class="learn-btn primary" id="learn-next">${last ? 'Explore' : 'Next'}</button>
+    </div>`;
+  document.getElementById('learn-prev').addEventListener('click', (e) => {
+    e.stopPropagation(); learnStep(-1);
+  });
+  document.getElementById('learn-next').addEventListener('click', (e) => {
+    e.stopPropagation(); last ? closeLearn() : learnStep(1);
+  });
+  if (_projDemoRAF) { cancelAnimationFrame(_projDemoRAF); _projDemoRAF = null; }
+  if (document.getElementById('proj-demo')) startProjDemo();
+  learnCard.focus();
+}
+
+function learnStep(d) {
+  learnIdx = Math.max(0, Math.min(LEARN_CARDS.length - 1, learnIdx + d));
+  renderLearnCard();
+}
+function openLearn() {
+  learnIdx = 0;
+  learnOverlay.classList.remove('hidden');
+  renderLearnCard();
+}
+function closeLearn() {
+  learnOverlay.classList.add('hidden');
+  if (_projDemoRAF) { cancelAnimationFrame(_projDemoRAF); _projDemoRAF = null; }
+  try { localStorage.setItem('sue_learn_seen', '1'); } catch (e) {}
+}
+
+// the live shadow demonstration on card 3
+function startProjDemo() {
+  const svg = document.getElementById('proj-demo');
+  const NS = 'http://www.w3.org/2000/svg';
+  // five points in the plane; A and B are the highlighted true-neighbor pair
+  const PTS = [[-70, -46], [-34, 60], [8, -74], [46, 34], [82, -20]];
+  const A = 0, B = 2;   // truly close pair (distance fixed by construction)
+  const cx = 240, cy = 96, axisY = 206;
+  svg.innerHTML = `
+    <line id="pd-axis" x1="60" y1="${axisY}" x2="420" y2="${axisY}"
+      stroke="#b9b0a2" stroke-width="1.4"/>
+    <text x="60" y="${axisY + 20}" font-size="11" fill="#6b6b76">the projection (what the plot shows)</text>
+    <text x="60" y="16" font-size="11" fill="#6b6b76">the true space (what the encoder made)</text>
+    <line id="pd-lens" stroke="#8ca252" stroke-width="1.2" stroke-dasharray="5 4"/>
+    <g id="pd-rays"></g><g id="pd-pts"></g><g id="pd-shadows"></g>
+    <text id="pd-true" x="420" y="16" font-size="11.5" text-anchor="end" fill="#5b4b8a"></text>
+    <text id="pd-shadow" x="420" y="${axisY + 20}" font-size="11.5" text-anchor="end" fill="#a45a1e"></text>`;
+  const rays = svg.querySelector('#pd-rays');
+  const ptsG = svg.querySelector('#pd-pts');
+  const shG = svg.querySelector('#pd-shadows');
+  const trueDist = Math.hypot(PTS[A][0] - PTS[B][0], PTS[A][1] - PTS[B][1]);
+  svg.querySelector('#pd-true').textContent =
+    `true distance A\u2013B: ${Math.round(trueDist)} (constant)`;
+  function frame(ts) {
+    const th = 0.55 * Math.sin(ts / 2600);          // slow oscillating angle
+    const ux = Math.cos(th), uy = Math.sin(th);
+    rays.innerHTML = ''; ptsG.innerHTML = ''; shG.innerHTML = '';
+    const lens = svg.querySelector('#pd-lens');
+    lens.setAttribute('x1', cx - 150 * ux); lens.setAttribute('y1', cy - 150 * uy);
+    lens.setAttribute('x2', cx + 150 * ux); lens.setAttribute('y2', cy + 150 * uy);
+    const shadowX = [];
+    PTS.forEach(([px, py], i) => {
+      const X = cx + px, Y = cy + py;
+      const s = px * ux + py * uy;                  // scalar projection
+      const sx = cx + s * ux, sy = cy + s * uy;     // foot on the lens line
+      const hx = cx + s;                            // seat on the 1-D strip
+      shadowX[i] = hx;
+      const hot = (i === A || i === B);
+      rays.insertAdjacentHTML('beforeend',
+        `<line x1="${X}" y1="${Y}" x2="${sx}" y2="${sy}"
+           stroke="${hot ? '#c9bfe0' : '#e4ddd2'}" stroke-width="1"/>
+         <line x1="${sx}" y1="${sy}" x2="${hx}" y2="${axisY}"
+           stroke="${hot ? '#c9bfe0' : '#eee8dd'}" stroke-width="1" stroke-dasharray="2 3"/>`);
+      ptsG.insertAdjacentHTML('beforeend',
+        `<circle cx="${X}" cy="${Y}" r="${hot ? 6 : 4.5}"
+           fill="${hot ? '#5b4b8a' : '#b9b0a2'}"/>` +
+        (hot ? `<text x="${X + 9}" y="${Y + 4}" font-size="11"
+           fill="#5b4b8a">${i === A ? 'A' : 'B'}</text>` : ''));
+      shG.insertAdjacentHTML('beforeend',
+        `<circle cx="${hx}" cy="${axisY}" r="${hot ? 6 : 4.5}"
+           fill="${hot ? '#a45a1e' : '#d8cfc0'}"/>`);
+    });
+    // the true A-B link, so the constancy is visible
+    ptsG.insertAdjacentHTML('beforeend',
+      `<line x1="${cx + PTS[A][0]}" y1="${cy + PTS[A][1]}"
+         x2="${cx + PTS[B][0]}" y2="${cy + PTS[B][1]}"
+         stroke="#5b4b8a" stroke-width="1.6" stroke-dasharray="4 3" opacity="0.7"/>`);
+    svg.querySelector('#pd-shadow').textContent =
+      `shadow distance A\u2013B: ${Math.round(Math.abs(shadowX[A] - shadowX[B]))} (depends on the angle)`;
+    _projDemoRAF = requestAnimationFrame(frame);
+  }
+  _projDemoRAF = requestAnimationFrame(frame);
+}
+
+// interactions: click advances, keys navigate, Esc closes
+learnCard.addEventListener('click', (e) => {
+  if (e.target.closest('a, button')) return;   // let links and buttons act
+  learnStep(1);
+});
+learnOverlay.addEventListener('click', (e) => {
+  if (e.target === learnOverlay) closeLearn();
+});
+document.addEventListener('keydown', (e) => {
+  if (learnOverlay.classList.contains('hidden')) return;
+  if (e.key === 'ArrowRight' || (e.key === 'Tab' && !e.shiftKey)) {
+    e.preventDefault(); learnStep(1);
+  } else if (e.key === 'ArrowLeft' || (e.key === 'Tab' && e.shiftKey)) {
+    e.preventDefault(); learnStep(-1);
+  } else if (e.key === 'Escape' || e.key === 'Enter') {
+    e.preventDefault();
+    (learnIdx === LEARN_CARDS.length - 1 || e.key === 'Escape')
+      ? closeLearn() : learnStep(1);
+  }
+});
+document.getElementById('learn-reopen').addEventListener('click', openLearn);
+// auto-open on first visit only
+try {
+  if (!localStorage.getItem('sue_learn_seen')) openLearn();
+} catch (e) {}
 
 // ---------- orbital auto-rotate (3D only, until user interacts) ----------
 // The rotation is a first-impression touch \u2014 it plays automatically
@@ -2199,6 +2501,7 @@ def _nav_bar(current: str = "") -> str:
     """
     items = [
         ("viewer",   "Interactive viewer",  "semantic_universe_explorer.html"),
+        ("tsne",     "t-SNE / UMAP",        "tsne_umap_viewer.html"),
         ("walkthru", "Walk-through",        "sue_walkthru.html"),
         ("math",     "Math & statistics",   "math_and_statistics.html"),
     ]
@@ -2641,6 +2944,11 @@ def _render_readme(companies: List[str]) -> str:
                      if "emo7bf" in REPO_URL else "docs/sue_walkthru.html")
     math_html = ("https://emo7bf.github.io/SUE/math_and_statistics.html"
                  if "emo7bf" in REPO_URL else "docs/math_and_statistics.html")
+    tsne_umap_html = ("https://emo7bf.github.io/SUE/tsne_umap_viewer.html"
+                      if "emo7bf" in REPO_URL else "docs/tsne_umap_viewer.html")
+    aero_html = ("https://emo7bf.github.io/SUE/industries/aerospace_defense_3d.html"
+                 if "emo7bf" in REPO_URL
+                 else "docs/industries/aerospace_defense_3d.html")
 
     return f"""# Semantic Universe Explorer \u2014 SUE
 
@@ -2651,6 +2959,17 @@ def _render_readme(companies: List[str]) -> str:
 - **[Interactive viewer]({live_viewer})** 
 - **[Walk-through]({walkthru_html})** 
 - **[Math & statistics]({math_html})** 
+
+**New features**
+
+- **[t-SNE & UMAP viewers]({tsne_umap_html})** \u2014 the same corpus through
+  neighborhood-preserving projections, every perplexity / n_neighbors
+  setting switchable in place
+- **[Aerospace & Defense first look]({aero_html})** \u2014 a second industry:
+  16 companies, 37 reports, 3,371 passages
+- **Guided intro cards** \u2014 the viewer now opens with a short learning
+  deck (what a Global Impact Report is, and why one projection is never
+  the whole truth), reopenable via the *Guide* button
 
 ---
 

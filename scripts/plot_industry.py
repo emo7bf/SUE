@@ -155,6 +155,7 @@ def _nav_html(slug: str, industry_name: str) -> str:
         "<nav style='display:flex;gap:14px;align-items:center;padding:10px 16px;"
         "font-size:13px;border-bottom:1px solid #d9d9de;background:#f7f7f8;'>"
         "<a href='../semantic_universe_explorer.html'>Interactive viewer</a> · "
+        f"<a href='{slug}_tsne_umap.html'>t-SNE / UMAP</a> · "
         "<a href='../sue_walkthru.html'>Walk-through</a> · "
         "<a href='../math_and_statistics.html'>Math &amp; statistics</a> · "
         "<label style='display:inline-flex;gap:6px;align-items:center;'>Industry "
