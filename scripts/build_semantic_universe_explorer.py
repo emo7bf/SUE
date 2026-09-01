@@ -1087,14 +1087,15 @@ _HTML = """<!DOCTYPE html>
 
 <main class="viz" style="position:relative;">
   <div id="plot"></div>
-  <!-- Faithfulness badge: how much of the full 384-D structure the
-       current picture actually shows. Updated on every projection
-       change and every re-projection. -->
-  <div id="faith-badge" style="position:absolute;top:8px;right:14px;
+  <!-- Projection-fidelity readout: how much of the full 384-D structure
+       the current picture shows. Updated on every projection change and
+       every re-projection. Top-LEFT, because Plotly's modebar (orbit /
+       pan / zoom) claims the top-right corner. -->
+  <div id="faith-badge" style="position:absolute;top:8px;left:14px;
        z-index:20;background:var(--panel);border:1px solid var(--border);
        border-radius:999px;padding:4px 12px;font-size:11.5px;
        color:var(--muted);box-shadow:0 2px 6px rgba(0,0,0,.06);">
-    <span id="faith-text">fidelity to original space: computing\u2026</span>
+    <span id="faith-text">projection fidelity: computing\u2026</span>
     <button id="faith-info" type="button" title="What do these numbers mean?"
       style="border:none;background:none;color:var(--learn);cursor:pointer;
       font-size:12px;padding:0 0 0 4px;">\u24D8</button>
@@ -2391,7 +2392,7 @@ let _faithTimer = null;
 function scheduleFaithfulness() {
   const el = document.getElementById('faith-text');
   if (!el) return;
-  el.textContent = 'fidelity to original space: computing\u2026';
+  el.textContent = 'projection fidelity: computing\u2026';
   clearTimeout(_faithTimer);
   _faithTimer = setTimeout(() => {
     try {
@@ -2407,10 +2408,10 @@ function scheduleFaithfulness() {
       } else if (cc.kind === 'reproj' && state.reproj) {
         varTxt = `${(state.reproj.varShare * 100).toFixed(0)}% of subset variance \u00b7 `;
       }
-      el.textContent = `fidelity to original space: ${varTxt}Shepard r = ${
+      el.textContent = `projection fidelity: ${varTxt}Shepard r = ${
         isNaN(r) ? '\u2014' : r.toFixed(2)}`;
     } catch (e) {
-      el.textContent = 'fidelity to original space: unavailable';
+      el.textContent = 'projection fidelity: unavailable';
     }
   }, 250);
 }
@@ -2552,13 +2553,13 @@ const LEARN_CARDS = [
       before any flattening.</p>`,
   },
   {
-    title: 'Fidelity to the original space',
+    title: 'Projection fidelity',
     body: `
-      <p>The badge above the plot reports two diagnostics of the current
-      view: the fraction of total variance captured by the displayed
-      axes, and the <b>Shepard correlation</b> \u2014 the correlation between
-      pairwise distances in the full space and on screen, over sampled
-      pairs of passages:</p>
+      <p>The readout in the plot\u2019s upper-left corner reports two
+      diagnostics of the current view: the fraction of total variance
+      captured by the displayed axes, and the <b>Shepard correlation</b>
+      \u2014 the correlation between pairwise distances in the full space
+      and on screen, over sampled pairs of passages:</p>
       <svg class="proj-demo" id="shepard-demo" width="480" height="210"
            viewBox="0 0 480 210"></svg>
       <p>Both values update when the projection or the visible subset
