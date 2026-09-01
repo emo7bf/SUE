@@ -299,8 +299,8 @@
     </div>
     <button id="reproject-btn" class="sel-btn" type="button"
       style="margin-top:8px;width:100%;"
-      title="Fit fresh PCA axes to only the currently visible points, so the filtered subset gets the whole plot to itself">
-      ↻ Re-project visible points</button>
+      title="Fit fresh PCA axes to the current selection (filtered points, or the spotlit neighborhood), so the subset gets the whole plot to itself">
+      ↻ Re-project selection</button>
     <button id="reproject-reset" class="sel-btn" type="button"
       style="margin-top:4px;width:100%;display:none;">
       Back to full-corpus axes</button>
@@ -450,7 +450,25 @@ const COLOR_LEGENDS = {
 };
 function updateColorLegend() {
   const el = document.getElementById('color-legend');
-  if (el) el.innerHTML = COLOR_LEGENDS[state.color] || '';
+  if (!el) return;
+  let html = COLOR_LEGENDS[state.color] || '';
+  // In company mode with shapes on, report the register mix of the
+  // visible points: when a filter isolates near-uniform prose, the
+  // shape channel is legitimately monotone, and this line says so.
+  if (state.color === 'company' && state.shapes) {
+    const counts = [0, 0, 0];
+    let n = 0;
+    for (let i = 0; i < DATA.chunks.length; i++) {
+      if (!passesFilters(i)) continue;
+      counts[registerOf(i)]++; n++;
+    }
+    if (n > 0) {
+      const pct = counts.map(c => Math.round(100 * c / n));
+      html += ` Visible register mix: ${pct[0]}% prose · ` +
+              `${pct[1]}% ambiguous · ${pct[2]}% tabular.`;
+    }
+  }
+  el.innerHTML = html;
 }
 
 let state = {
@@ -636,7 +654,7 @@ function buildTraces() {
   const spotlight = new Set();
   if (state.selection !== null) {
     spotlight.add(state.selection);
-    for (const nb of DATA.neighbors[state.selection].slice(0, state.K)) {
+    for (const nb of neighborsOf(state.selection).slice(0, state.K)) {
       spotlight.add(nb);
     }
   }
@@ -790,7 +808,7 @@ const REGISTER_SYMBOLS_2D = ['circle', 'diamond', 'square'];
 function spotlightTraces(coords, is3d) {
   const sel = state.selection;
   const c = colorValues(state.color);
-  const nbrs = DATA.neighbors[sel].slice(0, state.K);
+  const nbrs = neighborsOf(sel).slice(0, state.K);
   const marker = {
     size: is3d ? 4.5 : 9,
     line: {width: 1.5, color: '#a45a1e'},
@@ -1112,7 +1130,7 @@ function updateInspector() {
   const pt = DATA.prose_tabular_score[state.selection].toFixed(2);
   const dd = (DATA.digit_density[state.selection] * 100).toFixed(1);
   const cco = DATA.dist_from_others[state.selection].toFixed(2);
-  const kMax = DATA.neighbors[state.selection].length;
+  const kMax = neighborsOf(state.selection).length;
   // Source-PDF line: if the operator supplied a canonical PDF URL in
   // data/pdf_urls.json, render "open at page N ↗" as a real link
   // (PDF viewers honor the #page=N fragment). Otherwise just show the
@@ -1229,7 +1247,7 @@ function _reportChunkBlock(idx, isCenter, distLabel) {
 function openNeighborhoodReport(centerIdx, K) {
   if (centerIdx === null || centerIdx === undefined) return;
   const centre   = DATA.chunks[centerIdx];
-  const nbrs     = (DATA.neighbors[centerIdx] || []).slice(0, K);
+  const nbrs     = (neighborsOf(centerIdx) || []).slice(0, K);
   // Company-diversity summary: how many distinct firms among the neighbours.
   const companiesInReport = new Set([centre.company]);
   nbrs.forEach(j => companiesInReport.add(DATA.chunks[j].company));
@@ -1629,6 +1647,41 @@ function visibleSubset() {
   return out;
 }
 
+// The subset a re-projection is fitted to. A spotlight selection (with
+// dim-others active) takes precedence over the filter panel, since the
+// spotlit points are what the user is visibly working with.
+function reprojSubset() {
+  if (state.selection !== null && state.dimOthers) {
+    return [...new Set([state.selection,
+      ...DATA.neighbors[state.selection].slice(0, state.K)])];
+  }
+  return visibleSubset();
+}
+
+// Neighbor lookup that respects an active re-projection: inside a
+// re-projected subset, neighbors are recomputed among subset members
+// only (exact cosine ranking over the quantized embeddings). Restoring
+// full-corpus axes restores the precomputed global ranking.
+let _nbrCache = {};
+function neighborsOf(idx) {
+  if (!state.reproj || !state.reproj.subsetSet) return DATA.neighbors[idx];
+  const key = idx + ':' + state.reproj.stamp;
+  if (_nbrCache[key]) return _nbrCache[key];
+  const E = getEmb(), D = DATA.emb_dim, o = idx * D;
+  const scored = [];
+  for (const j of state.reproj.subset) {
+    if (j === idx) continue;
+    const oj = j * D;
+    let dot = 0;
+    for (let d = 0; d < D; d++) dot += E[o + d] * E[oj + d];
+    scored.push([dot, j]);
+  }
+  scored.sort((a, b) => b[0] - a[0]);
+  const out = scored.slice(0, DATA.neighbors[idx].length).map(s => s[1]);
+  _nbrCache[key] = out;
+  return out;
+}
+
 // badge update, debounced and off the interaction path
 let _faithTimer = null;
 function scheduleFaithfulness() {
@@ -1668,14 +1721,16 @@ function syncReprojectButtons() {
   if (!btn) return;
   if (state.reproj) {
     rst.style.display = '';
-    note.innerHTML = `Showing a fresh best-fit projection of the
-      <b>${state.reproj.n}</b> visible points — this subset is currently
-      treated as the whole dataset.`;
+    note.innerHTML = `Axes are fitted to the <b>${state.reproj.n}</b>
+      selected points, and nearest neighbors are ranked within this
+      subset only. Restore full-corpus axes to return to the global
+      ranking.`;
   } else {
     rst.style.display = 'none';
-    note.innerHTML = `Filter first (category, company, digits…), then
-      re-project: the visible subset is treated as the whole dataset and
-      gets its own best-fit axes.`;
+    note.innerHTML = `Fits fresh axes to the current selection: the
+      filtered points, or — if a point is selected with
+      “gray out unrelated” on — the spotlit neighborhood.
+      Neighbor rankings are then restricted to that subset.`;
   }
 }
 
@@ -1698,10 +1753,10 @@ document.getElementById('umap-n').addEventListener('change', (e) => {
 });
 
 document.getElementById('reproject-btn').addEventListener('click', () => {
-  const sub = visibleSubset();
-  if (sub.length < 12) {
+  const sub = reprojSubset();
+  if (sub.length < 8) {
     document.getElementById('reproject-note').innerHTML =
-      '<b>Too few visible points</b> — loosen the filters a little first.';
+      '<b>Too few points selected</b> — widen the filters or raise K first.';
     return;
   }
   const btn = document.getElementById('reproject-btn');
@@ -1715,19 +1770,25 @@ document.getElementById('reproject-btn').addEventListener('click', () => {
       state.reproj = {
         Z3, Z2, n: sub.length, varShare: fit.varShare,
         r3: rangeOf(Z3, sub, 3), r2: rangeOf(Z2, sub, 2),
+        subset: sub, subsetSet: new Set(sub),
+        stamp: Date.now(),
       };
+      _nbrCache = {};
       syncReprojectButtons();
+      updateInspector();       // K slider bounds follow the subset
       redraw();
       scheduleFaithfulness();
     } finally {
       btn.disabled = false;
-      btn.textContent = '↻ Re-project visible points';
+      btn.textContent = '↻ Re-project selection';
     }
   }, 30);
 });
 document.getElementById('reproject-reset').addEventListener('click', () => {
   pushHistory();
   clearReproj();
+  _nbrCache = {};
+  updateInspector();           // neighbor ranking is global again
   redraw();
   scheduleFaithfulness();
 });
@@ -1744,45 +1805,53 @@ document.getElementById('faith-info').addEventListener('click', () => {
 // in the full 384-D space need not look nearest in any projection.
 const LEARN_CARDS = [
   {
-    title: 'What is a Global Impact Report?',
+    title: 'The corpus',
     body: `
-      <p>The yearly report where a company accounts for itself beyond
-      profit. A dozen kinds of disclosure share one PDF:</p>
+      <p>A Global Impact Report — also published as a Sustainability,
+      ESG, or Integrated Report — is a corporation’s annual disclosure
+      of environmental, social, and governance performance. A typical
+      report interleaves roughly a dozen recurring content types:</p>
       <svg class="proj-demo" id="gir-demo" width="480" height="190"
            viewBox="0 0 480 190"></svg>
-      <p>We split competitors’ reports into short passages and plot each
-      one as a point. <b>Near means similar</b> — no matter who wrote it.</p>`,
+      <p>Each point in this viewer is one passage of approximately 900
+      characters, embedded so that spatial proximity corresponds to
+      semantic similarity, independent of authorship.</p>`,
   },
   {
-    title: '<span class="new-pill">NEW</span> t-SNE &amp; UMAP',
+    title: '<span class="new-pill">NEW</span> t-SNE and UMAP projections',
     body: `
-      <p>This plot is a shadow of a 384-dimensional space. A and B keep a
-      fixed true distance — their shadows don’t:</p>
+      <p>The corpus is embedded in ℝ<sup>384</sup>; any display is a
+      projection onto two or three dimensions. Below, points A and B are
+      at a fixed distance in the ambient space, while the distance
+      between their projections varies with the projection angle:</p>
       <svg class="proj-demo" id="proj-demo" width="480" height="250"
            viewBox="0 0 480 250"></svg>
-      <p>PCA commits to one angle. <b>t-SNE</b> and <b>UMAP</b> pull true
-      neighbors together instead — both are now in the Projection panel,
-      with the full settings grid
-      <a href="tsne_umap_viewer.html">here</a>.</p>`,
+      <p>PCA selects the directions of maximal variance; t-SNE and UMAP
+      preserve local neighborhoods at the expense of global distances.
+      Both are available in the Projection panel; the full parameter
+      grid is <a href="tsne_umap_viewer.html">on a separate page</a>.</p>`,
   },
   {
-    title: 'Clicks don’t lie',
+    title: 'Neighbor computation',
     body: `
-      <p>Click a passage and its nearest neighbors are ranked in the full
-      384-dimensional space — not on screen.</p>
-      <p>So if a spotlit neighbor sits far away, the picture dropped that
-      distance. The ranking didn’t.</p>`,
+      <p>Nearest neighbors are ranked by cosine similarity in the ambient
+      384-dimensional space, not in the displayed projection.</p>
+      <p>A spotlighted neighbor that appears distant on screen therefore
+      reflects projection error, not an error in the ranking.</p>`,
   },
   {
     title: 'The faithfulness badge',
     body: `
-      <p>The corner badge scores the current picture: how much variance
-      it shows, and <b>Shepard r</b> — how well on-screen distances
-      track true ones. Each dot is a pair of passages:</p>
+      <p>The badge above the plot reports two diagnostics of the current
+      view: the fraction of total variance captured by the displayed
+      axes, and the <b>Shepard correlation</b> — the correlation between
+      ambient and on-screen pairwise distances over sampled pairs of
+      passages:</p>
       <svg class="proj-demo" id="shepard-demo" width="480" height="210"
            viewBox="0 0 480 210"></svg>
-      <p>Tight to the diagonal = honest picture. Filter, hit
-      <i>Re-project</i>, and watch r rise.</p>`,
+      <p>Both values update when the projection or the visible subset
+      changes. Re-projecting a filtered subset typically raises them,
+      since fewer points are easier to represent faithfully.</p>`,
   },
 ];
 
