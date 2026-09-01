@@ -2540,14 +2540,16 @@ const LEARN_CARDS = [
     title: 'Neighbor computation',
     body: `
       <p>Nearest neighbors are ranked by cosine similarity in the full
-      384-dimensional space, not in the displayed projection. Below, the
-      five nearest neighbors of the selected point are identified in
-      turn; the second-ranked neighbor lies far away <i>on screen</i>,
-      yet is genuinely nearby in the full space:</p>
-      <svg class="proj-demo" id="nbr-demo" width="480" height="200"
-           viewBox="0 0 480 200"></svg>
-      <p>A spotlighted neighbor that appears distant therefore reflects
-      projection error, not an error in the ranking.</p>`,
+      384-dimensional space, not in the displayed projection. Below,
+      S and N are true neighbors on the same elevation; F merely shares
+      S\u2019s position on the flat map. When elevation is projected away,
+      F appears nearest \u2014 a <b>false neighbor</b> created by the
+      projection:</p>
+      <svg class="proj-demo" id="nbr-demo" width="480" height="240"
+           viewBox="0 0 480 240"></svg>
+      <p>Projection can only remove distance, never add it; false
+      neighbors are the price. The ranking in this viewer is computed
+      before any flattening.</p>`,
   },
   {
     title: 'Fidelity to the original space',
@@ -2596,48 +2598,88 @@ function renderLearnCard() {
   learnCard.focus();
 }
 
-// card 3: five true neighbors of a selected point are ringed in rank
-// order; rank 2 is deliberately placed far away on screen
+// card 3: the elevation-map demonstration. S and N are true neighbors
+// on the same elevation; F shares S's map position on the valley floor.
+// The scene oscillates between the 3-D view and the flattened 2-D map,
+// and the "nearest point to S" readout flips accordingly.
 function startNbrDemo() {
   const svg = document.getElementById('nbr-demo');
-  // background points (screen positions)
-  const BG = [[70,60],[110,140],[150,45],[190,110],[235,65],[265,150],
-              [300,40],[330,100],[395,55],[420,140],[85,165],[360,165]];
-  const SEL = [210, 88];                       // the selected passage
-  // neighbors in TRUE-space rank order; index into BG
-  const RANKS = [3, 8, 0, 5, 2];               // #2 (BG[8]) is far on screen
+  // world coordinates: [x, y, z] with z = elevation
+  const S = [180, 90, 92], N = [235, 118, 96], F = [196, 102, 8];
+  const BG = [[80, 60, 30], [120, 150, 55], [300, 60, 20], [345, 140, 70],
+              [70, 130, 85], [395, 95, 45], [260, 40, 60]];
+  const d3of = (a, b) => Math.hypot(a[0]-b[0], a[1]-b[1], a[2]-b[2]);
+  const dSN3 = Math.round(d3of(S, N)), dSF3 = Math.round(d3of(S, F));
   svg.innerHTML = `
+    <g id="nd-grid"></g><g id="nd-stems"></g><g id="nd-links"></g>
     <g id="nd-pts"></g>
-    <circle cx="${SEL[0]}" cy="${SEL[1]}" r="7" fill="#5b4b8a"/>
-    <text x="${SEL[0]}" y="${SEL[1] - 12}" font-size="11" text-anchor="middle"
-      fill="#5b4b8a">selected</text>
-    <g id="nd-rings"></g>
-    <text id="nd-note" x="240" y="192" font-size="11.5" text-anchor="middle"
-      fill="#6b6b76"></text>`;
+    <text id="nd-view" x="14" y="18" font-size="11.5" fill="#6b6b76"></text>
+    <text x="466" y="18" font-size="11" text-anchor="end" fill="#6b6b76">
+      true distances: S\u2013N = ${dSN3} \u00b7 S\u2013F = ${dSF3}</text>
+    <text id="nd-note" x="240" y="234" font-size="11.5" text-anchor="middle"></text>`;
+  const grid = svg.querySelector('#nd-grid');
+  const stems = svg.querySelector('#nd-stems');
+  const links = svg.querySelector('#nd-links');
   const pts = svg.querySelector('#nd-pts');
-  pts.innerHTML = BG.map(p =>
-    `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#c9c2b4"/>`).join('');
-  const rings = svg.querySelector('#nd-rings');
+  const view = svg.querySelector('#nd-view');
   const note = svg.querySelector('#nd-note');
+  // isometric screen mapping; k scales elevation (1 = 3-D, 0 = flat map)
+  const iso = (p, k) => [46 + p[0] * 0.82 + p[1] * 0.30,
+                         205 - p[1] * 0.52 - p[2] * k * 0.62];
   function frame(ts) {
     if (!document.getElementById('nbr-demo')) return;
-    const phase = Math.floor(ts / 1100) % (RANKS.length + 2);   // pause at end
-    const shown = Math.min(phase + 1, RANKS.length);
-    let html = '';
-    for (let r = 0; r < shown; r++) {
-      const p = BG[RANKS[r]];
-      const hot = r === shown - 1 && phase < RANKS.length;
-      html += `<line x1="${SEL[0]}" y1="${SEL[1]}" x2="${p[0]}" y2="${p[1]}"
-        stroke="#d8cfc0" stroke-width="1" stroke-dasharray="3 3"/>`;
-      html += `<circle cx="${p[0]}" cy="${p[1]}" r="${hot ? 9 : 7}"
-        fill="none" stroke="#a45a1e" stroke-width="${hot ? 2 : 1.4}"/>`;
-      html += `<text x="${p[0]}" y="${p[1] - 12}" font-size="11"
-        text-anchor="middle" fill="#a45a1e">${r + 1}</text>`;
+    // hold at each end: k follows a clipped cosine
+    const raw = (Math.cos(ts / 1900) + 1) / 2;          // 1 -> 0 -> 1
+    const k = Math.max(0, Math.min(1, raw * 1.5 - 0.25));
+    // ground grid
+    let g = '';
+    for (let i = 0; i <= 4; i++) {
+      const a = iso([i * 100, 0, 0], k), b = iso([i * 100, 160, 0], k);
+      const c = iso([0, i * 40, 0], k), d = iso([400, i * 40, 0], k);
+      g += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"
+              stroke="#eee7db" stroke-width="1"/>
+            <line x1="${c[0]}" y1="${c[1]}" x2="${d[0]}" y2="${d[1]}"
+              stroke="#eee7db" stroke-width="1"/>`;
     }
-    rings.innerHTML = html;
-    note.textContent = (shown >= 2)
-      ? 'rank 2 is distant on screen \u2014 and second-closest in the full space'
-      : 'ranking neighbors in the full 384-dimensional space \u2026';
+    grid.innerHTML = g;
+    // stems (elevation cues) + background points
+    let st = '', pt = '';
+    for (const p of BG) {
+      const top = iso(p, k), base = iso([p[0], p[1], 0], k);
+      st += `<line x1="${base[0]}" y1="${base[1]}" x2="${top[0]}" y2="${top[1]}"
+               stroke="#ddd3c2" stroke-width="1"/>`;
+      pt += `<circle cx="${top[0]}" cy="${top[1]}" r="4" fill="#c9c2b4"/>`;
+    }
+    // the three named points
+    const drawNamed = (p, color, label) => {
+      const top = iso(p, k), base = iso([p[0], p[1], 0], k);
+      st += `<line x1="${base[0]}" y1="${base[1]}" x2="${top[0]}" y2="${top[1]}"
+               stroke="${color}" stroke-width="1" stroke-dasharray="2 2"
+               opacity="0.55"/>`;
+      pt += `<circle cx="${top[0]}" cy="${top[1]}" r="6.5" fill="${color}"/>
+             <text x="${top[0] + 10}" y="${top[1] + 4}" font-size="12"
+               fill="${color}" font-weight="bold">${label}</text>`;
+      return top;
+    };
+    const sX = drawNamed(S, '#5b4b8a', 'S');
+    const nX = drawNamed(N, '#8ca252', 'N');
+    const fX = drawNamed(F, '#a45a1e', 'F');
+    stems.innerHTML = st; pts.innerHTML = pt;
+    // links + live screen distances
+    const dSN = Math.hypot(sX[0]-nX[0], sX[1]-nX[1]);
+    const dSF = Math.hypot(sX[0]-fX[0], sX[1]-fX[1]);
+    links.innerHTML = `
+      <line x1="${sX[0]}" y1="${sX[1]}" x2="${nX[0]}" y2="${nX[1]}"
+        stroke="#8ca252" stroke-width="1.6" stroke-dasharray="4 3"/>
+      <line x1="${sX[0]}" y1="${sX[1]}" x2="${fX[0]}" y2="${fX[1]}"
+        stroke="#a45a1e" stroke-width="1.6" stroke-dasharray="4 3"/>`;
+    const flat = k < 0.12;
+    view.textContent = flat ? 'the flat map (2-D projection)'
+                            : 'the full space (elevation shown)';
+    note.innerHTML = flat
+      ? 'on the map, <tspan fill="#a45a1e" font-weight="bold">F</tspan> appears nearest to S \u2014 a false neighbor'
+      : 'in the full space, <tspan fill="#8ca252" font-weight="bold">N</tspan> is nearest to S; F is on the valley floor';
+    note.setAttribute('fill', flat ? '#a45a1e' : '#4a5a3a');
     _projDemoRAF = requestAnimationFrame(frame);
   }
   _projDemoRAF = requestAnimationFrame(frame);
