@@ -1,12 +1,12 @@
 """
-scripts/ingest_vertical.py
+scripts/ingest_industry.py
 --------------------------
-Parse, chunk, embed, and tag every downloaded PDF of one vertical into a
-cached corpus under assets/verticals/<vertical>/.
+Parse, chunk, embed, and tag every downloaded PDF of one industry into a
+cached corpus under assets/industries/<industry>/.
 
 Pipeline (kept deliberately identical to the semiconductor corpus so the
-two verticals stay comparable):
-  1. Walk data/sample_data/<Vertical>/<Company>/*.pdf
+two industries stay comparable):
+  1. Walk data/sample_data/<industry>/<Company>/*.pdf
   2. Extract the text layer per page with pypdf (no OCR), normalizing
      whitespace per page so page->character offsets stay valid
   3. Concatenate pages (250k char cap per doc), chunk into ~900-char
@@ -15,17 +15,17 @@ two verticals stay comparable):
      future page-thumbnail feature)
   5. Tag each chunk with company, ticker, universe tier, document
      category, report year, source URL (from
-     data/verticals/<vertical>_downloads.json), digit density, and the
+     data/industries/<industry>_downloads.json), digit density, and the
      three-way prose/ambiguous/tabular register used by the viewer
   6. Embed with sentence-transformers/all-MiniLM-L6-v2 (unit-norm)
 
 Outputs:
-  assets/verticals/<vertical>/chunks.parquet
-  assets/verticals/<vertical>/embeddings.npy
+  assets/industries/<industry>/chunks.parquet
+  assets/industries/<industry>/embeddings.npy
 
 Usage:
-    python scripts/ingest_vertical.py                  # aerospace_defense
-    python scripts/ingest_vertical.py --max-chars 80000   # smoke run
+    python scripts/ingest_industry.py                  # aerospace_defense
+    python scripts/ingest_industry.py --max-chars 80000   # smoke run
 """
 
 from __future__ import annotations
@@ -42,9 +42,9 @@ from pypdf import PdfReader
 
 
 ROOT = Path(__file__).resolve().parent.parent
-VERTICALS_DIR = ROOT / "data" / "verticals"
+INDUSTRIES_DIR = ROOT / "data" / "industries"
 DATA_DIR = ROOT / "data" / "sample_data"
-ASSETS_DIR = ROOT / "assets" / "verticals"
+ASSETS_DIR = ROOT / "assets" / "industries"
 
 CHUNK_SIZE = 900
 CHUNK_OVERLAP = 120
@@ -121,18 +121,18 @@ def chunk_pages(pages: List[str], max_chars: int) -> List[Tuple[str, int, int]]:
     return out
 
 
-def build_corpus(vertical: str, max_chars: int) -> pd.DataFrame:
-    downloads_file = VERTICALS_DIR / f"{vertical}_downloads.json"
+def build_corpus(industry: str, max_chars: int) -> pd.DataFrame:
+    downloads_file = INDUSTRIES_DIR / f"{industry}_downloads.json"
     meta = {}
     if downloads_file.exists():
         meta = json.loads(downloads_file.read_text(encoding="utf-8"))
-    sources_file = VERTICALS_DIR / f"{vertical}_sources.json"
-    vertical_name = json.loads(
-        sources_file.read_text(encoding="utf-8"))["vertical"]
+    sources_file = INDUSTRIES_DIR / f"{industry}_sources.json"
+    industry_name = json.loads(
+        sources_file.read_text(encoding="utf-8"))["industry"]
 
-    vert_dir = DATA_DIR / slugify(vertical_name)
-    pdfs = sorted(vert_dir.glob("*/*.pdf"))
-    print(f"Found {len(pdfs)} PDFs under {vert_dir}")
+    ind_dir = DATA_DIR / slugify(industry_name)
+    pdfs = sorted(ind_dir.glob("*/*.pdf"))
+    print(f"Found {len(pdfs)} PDFs under {ind_dir}")
 
     rows = []
     for pdf in pdfs:
@@ -145,8 +145,7 @@ def build_corpus(vertical: str, max_chars: int) -> pd.DataFrame:
         for j, (c, p_start, p_end) in enumerate(chunks):
             dd = digit_density(c)
             rows.append({
-                "vertical": vertical_name,
-                "industry": vertical_name,       # column parity with core corpus
+                "industry": industry_name,
                 "company": company,
                 "ticker": m.get("ticker", ""),
                 "tier": m.get("universe_tier", ""),
@@ -174,21 +173,21 @@ def embed(texts: List[str]) -> np.ndarray:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--vertical", default="aerospace_defense")
+    ap.add_argument("--industry", default="aerospace_defense")
     ap.add_argument("--max-chars", type=int, default=250_000,
                     help="Character cap per PDF (matches the core corpus).")
     args = ap.parse_args()
 
-    df = build_corpus(args.vertical, max_chars=args.max_chars)
+    df = build_corpus(args.industry, max_chars=args.max_chars)
     if df.empty:
-        raise SystemExit("No chunks produced. Run scripts/fetch_vertical.py first.")
+        raise SystemExit("No chunks produced. Run scripts/fetch_industry.py first.")
     print(f"\nTotal: {len(df):,} chunks | {df['company'].nunique()} companies "
           f"| {df['doc'].nunique()} documents")
     print(df["register"].value_counts().to_string())
 
     X = embed(df["text"].tolist())
 
-    out_dir = ASSETS_DIR / args.vertical
+    out_dir = ASSETS_DIR / args.industry
     out_dir.mkdir(parents=True, exist_ok=True)
     df.to_parquet(out_dir / "chunks.parquet", index=False)
     np.save(out_dir / "embeddings.npy", X.astype(np.float32))

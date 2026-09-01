@@ -1,9 +1,9 @@
 """
-scripts/fetch_vertical.py
+scripts/fetch_industry.py
 -------------------------
-Download every direct-PDF report listed in a vertical's source file
-(data/verticals/<vertical>_sources.json) into
-data/sample_data/<Vertical>/<Company>/<year> <title>.pdf.
+Download every direct-PDF report listed in a industry's source file
+(data/industries/<industry>_sources.json) into
+data/sample_data/<industry>/<Company>/<year> <title>.pdf.
 
 Design goals (mirrors scripts/fetch_reports.py):
 - Never overwrite: rows whose target file already exists are skipped.
@@ -13,14 +13,14 @@ Design goals (mirrors scripts/fetch_reports.py):
   companies serve the same file from multiple URLs).
 - Corporate CDNs commonly refuse non-browser user agents, so we present
   a plain browser UA string.
-- Write data/verticals/<vertical>_downloads.json mapping each saved
+- Write data/industries/<industry>_downloads.json mapping each saved
   filename to its full source record (ticker, tier, category, year,
-  url), which scripts/ingest_vertical.py uses to tag chunks.
+  url), which scripts/ingest_industry.py uses to tag chunks.
 
 Usage:
-    python scripts/fetch_vertical.py                       # P0 + P1
-    python scripts/fetch_vertical.py --priority P0         # primary reports only
-    python scripts/fetch_vertical.py --dry-run
+    python scripts/fetch_industry.py                       # P0 + P1
+    python scripts/fetch_industry.py --priority P0         # primary reports only
+    python scripts/fetch_industry.py --dry-run
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ import requests
 
 
 ROOT = Path(__file__).resolve().parent.parent
-VERTICALS_DIR = ROOT / "data" / "verticals"
+INDUSTRIES_DIR = ROOT / "data" / "industries"
 DATA_DIR = ROOT / "data" / "sample_data"
 
 HEADERS = {
@@ -55,11 +55,11 @@ def slugify(name: str) -> str:
     return re.sub(r"\s+", "_", s) or "unknown"
 
 
-def target_path(vertical: str, rec: dict) -> Path:
+def target_path(industry: str, rec: dict) -> Path:
     year = (rec.get("report_year") or "").strip()
     title = slugify(rec.get("document_title") or rec.get("category") or "report")
     fname = f"{year} {title}.pdf".strip() if year else f"{title}.pdf"
-    return DATA_DIR / slugify(vertical) / slugify(rec["company_name"]) / fname
+    return DATA_DIR / slugify(industry) / slugify(rec["company_name"]) / fname
 
 
 def download(url: str, dest: Path) -> str | None:
@@ -100,18 +100,18 @@ def sha256_of(path: Path) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
-    ap.add_argument("--vertical", default="aerospace_defense",
-                    help="Basename of data/verticals/<vertical>_sources.json")
+    ap.add_argument("--industry", default="aerospace_defense",
+                    help="Basename of data/industries/<industry>_sources.json")
     ap.add_argument("--priority", nargs="+", default=["P0", "P1"],
                     help="crawl_priority tiers to fetch (default: P0 P1)")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    src_file = VERTICALS_DIR / f"{args.vertical}_sources.json"
+    src_file = INDUSTRIES_DIR / f"{args.industry}_sources.json"
     if not src_file.exists():
         raise SystemExit(f"missing {src_file}")
     payload = json.loads(src_file.read_text(encoding="utf-8"))
-    vertical = payload["vertical"]
+    industry = payload["industry"]
     records = payload["sources"]
 
     todo = [r for r in records
@@ -121,7 +121,7 @@ def main() -> int:
     print(f"{len(records)} source records; {len(todo)} direct PDFs at "
           f"priority {'/'.join(args.priority)}")
 
-    downloads_file = VERTICALS_DIR / f"{args.vertical}_downloads.json"
+    downloads_file = INDUSTRIES_DIR / f"{args.industry}_downloads.json"
     downloads: dict = {}
     if downloads_file.exists():
         downloads = json.loads(downloads_file.read_text(encoding="utf-8"))
@@ -131,7 +131,7 @@ def main() -> int:
     fetched, skipped, deduped, failed = 0, 0, 0, []
 
     for rec in todo:
-        dest = target_path(vertical, rec)
+        dest = target_path(industry, rec)
         rel = dest.relative_to(ROOT)
         if dest.exists():
             print(f"  [skip] {rel} (exists)")

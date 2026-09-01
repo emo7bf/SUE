@@ -1,20 +1,20 @@
 """
-scripts/plot_vertical.py
+scripts/plot_industry.py
 ------------------------
-Emit interactive first-look viewers for one vertical's cached corpus:
+Emit interactive first-look viewers for one industry's cached corpus:
 
-  docs/verticals/<vertical>_3d.html   PCA-3D, chunks + document centroids
-  docs/verticals/<vertical>_2d.html   PCA-2D companion
+  docs/industries/<industry>_3d.html   PCA-3D, chunks + document centroids
+  docs/industries/<industry>_2d.html   PCA-2D companion
 
 Both pages color by company, and hovers carry the full chunk provenance:
 document, category, report year, page range, register, and a snippet.
-This is the quick-look plot for a newly ingested vertical; the full SUE
+This is the quick-look plot for a newly ingested industry; the full SUE
 explorer treatment (color modes, filters, exhibits) comes once the
-vertical is folded into build_semantic_universe_explorer.py.
+industry is folded into build_semantic_universe_explorer.py.
 
 Usage:
-    python scripts/plot_vertical.py                # aerospace_defense
-    python scripts/plot_vertical.py --vertical <name>
+    python scripts/plot_industry.py                # aerospace_defense
+    python scripts/plot_industry.py --industry <name>
 """
 
 from __future__ import annotations
@@ -28,8 +28,8 @@ from sklearn.decomposition import PCA
 
 
 ROOT = Path(__file__).resolve().parent.parent
-ASSETS_DIR = ROOT / "assets" / "verticals"
-DOCS_DIR = ROOT / "docs" / "verticals"
+ASSETS_DIR = ROOT / "assets" / "industries"
+DOCS_DIR = ROOT / "docs" / "industries"
 
 _PALETTE = [
     "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
@@ -51,16 +51,16 @@ def _hover(r) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--vertical", default="aerospace_defense")
+    ap.add_argument("--industry", default="aerospace_defense")
     args = ap.parse_args()
 
-    cache = ASSETS_DIR / args.vertical
+    cache = ASSETS_DIR / args.industry
     df = pd.read_parquet(cache / "chunks.parquet")
     X = np.load(cache / "embeddings.npy")
-    vertical_name = df["vertical"].iloc[0]
+    industry_name = df["industry"].iloc[0]
     companies = sorted(df["company"].unique())
     colors = {c: _PALETTE[i % len(_PALETTE)] for i, c in enumerate(companies)}
-    print(f"{len(df):,} chunks | {len(companies)} companies | {vertical_name}")
+    print(f"{len(df):,} chunks | {len(companies)} companies | {industry_name}")
 
     Z3 = PCA(n_components=3, random_state=0).fit_transform(X)
 
@@ -109,7 +109,7 @@ def main() -> None:
         return out
 
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
-    title = (f"SUE — {vertical_name}: {len(df):,} chunks from "
+    title = (f"SUE — {industry_name}: {len(df):,} chunks from "
              f"{df['doc'].nunique()} reports by {len(companies)} companies "
              f"(PCA of MiniLM embeddings)")
 
@@ -118,14 +118,14 @@ def main() -> None:
                        scene=dict(xaxis_title="PC 1", yaxis_title="PC 2",
                                   zaxis_title="PC 3"),
                        legend=dict(itemsizing="constant"))
-    out3 = DOCS_DIR / f"{args.vertical}_3d.html"
+    out3 = DOCS_DIR / f"{args.industry}_3d.html"
     fig3.write_html(out3, include_plotlyjs="cdn", full_html=True)
     print("wrote", out3)
 
     fig2 = go.Figure(traces(2))
     fig2.update_layout(title=title, xaxis_title="PC 1", yaxis_title="PC 2",
                        height=820, legend=dict(itemsizing="constant"))
-    out2 = DOCS_DIR / f"{args.vertical}_2d.html"
+    out2 = DOCS_DIR / f"{args.industry}_2d.html"
     fig2.write_html(out2, include_plotlyjs="cdn", full_html=True)
     print("wrote", out2)
 
