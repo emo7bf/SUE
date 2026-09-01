@@ -113,21 +113,56 @@ def main() -> None:
              f"{df['doc'].nunique()} reports by {len(companies)} companies "
              f"(PCA of MiniLM embeddings)")
 
+    nav = _nav_html(args.industry, industry_name)
+
+    def write_page(fig, path):
+        body = fig.to_html(include_plotlyjs="cdn", full_html=False)
+        path.write_text(
+            "<!DOCTYPE html><html><head><meta charset='utf-8'>"
+            f"<title>SUE — {industry_name}</title></head>"
+            f"<body style='margin:0;font-family:Georgia,serif;'>{nav}{body}"
+            "</body></html>", encoding="utf-8")
+        print("wrote", path)
+
     fig3 = go.Figure(traces(3))
     fig3.update_layout(title=title, height=860,
                        scene=dict(xaxis_title="PC 1", yaxis_title="PC 2",
                                   zaxis_title="PC 3"),
                        legend=dict(itemsizing="constant"))
-    out3 = DOCS_DIR / f"{args.industry}_3d.html"
-    fig3.write_html(out3, include_plotlyjs="cdn", full_html=True)
-    print("wrote", out3)
+    write_page(fig3, DOCS_DIR / f"{args.industry}_3d.html")
 
     fig2 = go.Figure(traces(2))
     fig2.update_layout(title=title, xaxis_title="PC 1", yaxis_title="PC 2",
                        height=820, legend=dict(itemsizing="constant"))
-    out2 = DOCS_DIR / f"{args.industry}_2d.html"
-    fig2.write_html(out2, include_plotlyjs="cdn", full_html=True)
-    print("wrote", out2)
+    write_page(fig2, DOCS_DIR / f"{args.industry}_2d.html")
+
+
+def _nav_html(slug: str, industry_name: str) -> str:
+    """Top nav strip: back-links to the flagship pages + industry dropdown."""
+    import json
+    opts = ['<option value="../semantic_universe_explorer.html">'
+            'Semiconductor Equipment</option>']
+    ind_dir = ROOT / "data" / "industries"
+    for src in sorted(ind_dir.glob("*_sources.json")):
+        s = src.name[: -len("_sources.json")]
+        try:
+            name = json.loads(src.read_text(encoding="utf-8"))["industry"]
+        except Exception:
+            name = s.replace("_", " ").title()
+        sel = " selected" if s == slug else ""
+        opts.append(f'<option value="{s}_3d.html"{sel}>{name}</option>')
+    return (
+        "<nav style='display:flex;gap:14px;align-items:center;padding:10px 16px;"
+        "font-size:13px;border-bottom:1px solid #d9d9de;background:#f7f7f8;'>"
+        "<a href='../semantic_universe_explorer.html'>Interactive viewer</a> · "
+        "<a href='../sue_walkthru.html'>Walk-through</a> · "
+        "<a href='../math_and_statistics.html'>Math &amp; statistics</a> · "
+        "<label style='display:inline-flex;gap:6px;align-items:center;'>Industry "
+        "<select onchange=\"if(this.value)window.location.href=this.value\">"
+        + "".join(opts) + "</select></label>"
+        f"<span style='margin-left:auto;color:#55575c;'>{industry_name} — "
+        "first-look viewer</span></nav>"
+    )
 
 
 if __name__ == "__main__":

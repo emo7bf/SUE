@@ -904,16 +904,18 @@ _HTML = """<!DOCTYPE html>
 
   <div class="ctrl-group">
     <h3>Color by</h3>
-    <label><input type="radio" name="color" value="company" checked> Company</label>
+    <label><input type="radio" name="color" value="content_type" checked> Content type (12 categories)</label>
+    <label><input type="radio" name="color" value="company"> Company</label>
     <label><input type="radio" name="color" value="prose_tabular"> Prose\u2192Tabular score</label>
     <label><input type="radio" name="color" value="digit_density"> Digit Density of Text</label>
     <label><input type="radio" name="color" value="cross_corpus_out"> Cross-corpus outlierness (rank)</label>
     <label><input type="radio" name="color" value="doc_typicality"> In-doc typicality</label>
     <label><input type="radio" name="color" value="cluster"> Unsupervised cluster (GMM)</label>
-    <label><input type="radio" name="color" value="content_type"> Content type (12 categories)</label>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35;">
-      In this mode, marker <b>shape</b> encodes company
-      (\u25CF AMAT, \u25C6 ASML, \u25A0 KLA, \u271A Lam, \u2716 TEL).
+    <label style="margin-top:6px;"><input type="checkbox" id="shapes-toggle" checked>
+      Marker shapes carry a second variable</label>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35;" id="shape-hint">
+      Content-type mode: shape = company. Company mode: shape =
+      prose / ambiguous / tabular register. Untick to use plain dots.
     </div>
   </div>
 
@@ -1008,7 +1010,7 @@ const PLOTLY_CONFIG = { displaylogo: false, responsive: true,
 // permanent "what am I looking at" caption so the sidebar radio labels
 // can stay short.
 const COLOR_LEGENDS = {
-  company:          'Colored by <b>company</b>. Each hue is one of the five firms.',
+  company:          'Colored by <b>company</b>. Each hue is one firm; when shapes are on, marker <b>shape</b> = prose / ambiguous / tabular register.',
   prose_tabular:    '<b>Prose\u2192Tabular score</b>: low = prose (blue), high = tabular (red).',
   digit_density:    '<b>Digit density of text</b>: 0% = pure prose, higher = more numerals.',
   cross_corpus_out: '<b>Cross-corpus outlierness (rank)</b>: 0 = typical for the sector, 1 = most outlier.',
@@ -1023,10 +1025,11 @@ function updateColorLegend() {
 
 let state = {
   view: '3d',
-  color: 'company',
+  color: 'content_type',
   selection: null,       // index into DATA.chunks
   K: 15,
   dimOthers: true,
+  shapes: true,          // marker shape carries a second variable
   // filters
   content: 'all',
   ddMin: 0,   // percent
@@ -1178,26 +1181,20 @@ function buildTraces() {
       spotlight.add(nb);
     }
   }
-  const dimming = state.selection !== null && state.dimOthers;
-
   // build the set of chunk indices that survive the filter panel;
   // spotlight always survives so a click never causes its target to vanish
   const N = DATA.chunks.length;
   const visible = new Array(N);
-  let visibleCount = 0;
   for (let i = 0; i < N; i++) {
-    if (passesFilters(i) || spotlight.has(i)) {
-      visible[i] = true;
-      visibleCount++;
-    } else {
-      visible[i] = false;
-    }
+    visible[i] = passesFilters(i) || spotlight.has(i);
   }
   const traces = [];
+  _baseOpacities = [];
 
   if (c.type === 'categorical') {
     const isContentType = state.color === 'content_type';
     const symbols = is3d ? COMPANY_SYMBOLS_3D : COMPANY_SYMBOLS_2D;
+    const regSymbols = is3d ? REGISTER_SYMBOLS_3D : REGISTER_SYMBOLS_2D;
     const colorForLevel = (lvl, k) =>
       (typeof c.colorFor === 'function') ? c.colorFor(lvl) : palette(k);
 
@@ -1209,100 +1206,165 @@ function buildTraces() {
       }
       if (idx.length === 0) continue;
       const col = colorForLevel(lvl, k);
-      const dimIdx = dimming ? idx.filter(i => !spotlight.has(i)) : [];
-      const brightIdx = dimming ? idx.filter(i => spotlight.has(i)) : idx;
-
-      if (dimIdx.length) {
-        traces.push(_scatterTrace(dimIdx, coords, is3d, {
-          color: '#dddddd', size: 2.4, opacity: 0.15,
-          name: lvl, showlegend: false, noHover: true,
-        }));
-      }
-      if (brightIdx.length) {
-        if (isContentType) {
-          // Sub-partition this category's indices by company so each
-          // (category, company) pair can carry its own marker symbol.
-          // Only the first sub-trace shows in the legend so the legend
-          // stays a clean 12-entry list, not 60.
-          const byCompany = symbols.map(() => []);
-          for (const i of brightIdx) byCompany[DATA.company_of[i]].push(i);
-          let firstSub = true;
-          for (let ci = 0; ci < byCompany.length; ci++) {
-            const sub = byCompany[ci];
-            if (!sub.length) continue;
-            traces.push(_scatterTrace(sub, coords, is3d, {
-              color: col, size: 3.6, opacity: dimming ? 0.95 : 0.78,
-              name: lvl, showlegend: firstSub, symbol: symbols[ci],
-            }));
-            firstSub = false;
-          }
-        } else {
-          traces.push(_scatterTrace(brightIdx, coords, is3d, {
-            color: col, size: 3.4, opacity: dimming ? 0.95 : 0.75,
-            name: lvl, showlegend: true,
+      if (isContentType && state.shapes) {
+        // Sub-partition this category's indices by company so each
+        // (category, company) pair can carry its own marker symbol.
+        // Only the first sub-trace shows in the legend so the legend
+        // stays a clean 12-entry list, not 60.
+        const byCompany = symbols.map(() => []);
+        for (const i of idx) byCompany[DATA.company_of[i]].push(i);
+        let firstSub = true;
+        for (let ci = 0; ci < byCompany.length; ci++) {
+          const sub = byCompany[ci];
+          if (!sub.length) continue;
+          traces.push(_scatterTrace(sub, coords, is3d, {
+            color: col, size: 3.6, opacity: 0.78,
+            name: lvl, showlegend: firstSub, symbol: symbols[ci],
           }));
+          _baseOpacities.push(0.78);
+          firstSub = false;
         }
+      } else if (state.color === 'company' && state.shapes) {
+        // Flip-flopped encoding: color = company, shape = prose/ambiguous/
+        // tabular register (3 shapes; 12 content types exceed the 3D
+        // symbol vocabulary, the register is its faithful coarsening).
+        const byReg = [[], [], []];
+        for (const i of idx) byReg[registerOf(i)].push(i);
+        let firstSub = true;
+        for (let ri = 0; ri < 3; ri++) {
+          const sub = byReg[ri];
+          if (!sub.length) continue;
+          traces.push(_scatterTrace(sub, coords, is3d, {
+            color: col, size: 3.4, opacity: 0.75,
+            name: lvl, showlegend: firstSub, symbol: regSymbols[ri],
+          }));
+          _baseOpacities.push(0.75);
+          firstSub = false;
+        }
+      } else {
+        traces.push(_scatterTrace(idx, coords, is3d, {
+          color: col, size: 3.4, opacity: 0.75,
+          name: lvl, showlegend: true,
+        }));
+        _baseOpacities.push(0.75);
       }
     }
 
-    // Phantom traces (one per company) to surface the shape\u2194company
-    // mapping in the Plotly legend when content_type mode is active.
-    if (isContentType) {
-      for (let ci = 0; ci < DATA.companies.length; ci++) {
+    // Phantom legend traces that document the shape encoding:
+    // content-type mode -> shape = company; company mode -> shape = register.
+    if (state.shapes && (isContentType || state.color === 'company')) {
+      const phantomNames = isContentType ? DATA.companies : REGISTER_NAMES;
+      const phantomSyms = isContentType ? symbols : regSymbols;
+      for (let ci = 0; ci < phantomNames.length; ci++) {
         traces.push({
           type: is3d ? 'scatter3d' : 'scattergl',
           x: [null], y: [null], ...(is3d ? {z: [null]} : {}),
           mode: 'markers',
           marker: {size: is3d ? 5 : 8, color: '#555',
-                   symbol: symbols[ci], line: {width: 0}},
-          name: DATA.companies[ci],
-          legendgroup: 'company-shape',
+                   symbol: phantomSyms[ci], line: {width: 0}},
+          name: phantomNames[ci],
+          legendgroup: 'shape-key',
           showlegend: true, hoverinfo: 'skip',
         });
+        _baseOpacities.push(1);
       }
     }
   } else {
     // continuous
     const idxAll = [];
     for (let i = 0; i < N; i++) if (visible[i]) idxAll.push(i);
-    const dimIdx = dimming ? idxAll.filter(i => !spotlight.has(i)) : [];
-    const brightIdx = dimming ? idxAll.filter(i => spotlight.has(i)) : idxAll;
-
-    if (dimIdx.length) {
-      traces.push(_scatterTrace(dimIdx, coords, is3d, {
-        color: '#dddddd', size: 2.4, opacity: 0.15,
-        name: 'other', showlegend: false, noHover: true,
-      }));
-    }
-    if (brightIdx.length) {
+    if (idxAll.length) {
       traces.push({
         type: is3d ? 'scatter3d' : 'scattergl',
-        x: brightIdx.map(i => coords[i][0]),
-        y: brightIdx.map(i => coords[i][1]),
-        ...(is3d ? {z: brightIdx.map(i => coords[i][2])} : {}),
+        x: idxAll.map(i => coords[i][0]),
+        y: idxAll.map(i => coords[i][1]),
+        ...(is3d ? {z: idxAll.map(i => coords[i][2])} : {}),
         mode: 'markers',
         marker: {
           size: is3d ? 3.4 : 6,
-          color: brightIdx.map(i => c.values[i]),
+          color: idxAll.map(i => c.values[i]),
           colorscale: c.cscale, cmin: c.cmin, cmax: c.cmax,
           showscale: true,
           colorbar: {title: {text: c.title, font: {size: 10}},
                      len: 0.6, thickness: 12},
-          opacity: dimming ? 0.95 : 0.8,
+          opacity: 0.8,
           line: {width: 0},
         },
-        text: brightIdx.map(hoverTextFor),
+        text: idxAll.map(hoverTextFor),
         hovertemplate: '%{text}<extra></extra>',
-        customdata: brightIdx,
+        customdata: idxAll,
         showlegend: false,
       });
+      _baseOpacities.push(0.8);
     }
   }
 
-  // spotlight ring (draws the selected chunk larger and outlined)
+  _baseTraceCount = traces.length;
+
+  // Selection: dim the base cloud in place (colors stay, opacity drops)
+  // and overlay the spotlight traces on top. The incremental path
+  // (_renderSelectionOnly) reproduces exactly this via restyle/addTraces
+  // without rebuilding the base geometry.
+  if (state.selection !== null && state.dimOthers) {
+    for (const t of traces) if (t.marker) t.marker.opacity = DIM_OPACITY;
+  }
   if (state.selection !== null) {
-    const sel = state.selection;
-    traces.push({
+    for (const t of spotlightTraces(coords, is3d)) traces.push(t);
+  }
+  _spotlightCount = traces.length - _baseTraceCount;
+  return traces;
+}
+
+// register (prose / ambiguous / tabular) of a chunk, as 0 / 1 / 2
+function registerOf(i) {
+  const ddPct = DATA.digit_density[i] * 100;
+  if (ddPct >= 18.0) return 2;
+  if (ddPct >= 5.0) return 1;
+  return 0;
+}
+const REGISTER_NAMES = ['prose', 'ambiguous', 'tabular'];
+const REGISTER_SYMBOLS_3D = ['circle', 'diamond', 'square'];
+const REGISTER_SYMBOLS_2D = ['circle', 'diamond', 'square'];
+
+// The two spotlight overlay traces: bright copies of the K neighbors
+// (colored per the active color mode) and the selected chunk itself.
+function spotlightTraces(coords, is3d) {
+  const sel = state.selection;
+  const c = colorValues(state.color);
+  const nbrs = DATA.neighbors[sel].slice(0, state.K);
+  const marker = {
+    size: is3d ? 4.5 : 9,
+    line: {width: 1.5, color: '#a45a1e'},
+    opacity: 0.95,
+  };
+  if (c.type === 'categorical') {
+    const cmap = {};
+    c.levels.forEach((lvl, k) => {
+      cmap[lvl] = (typeof c.colorFor === 'function') ? c.colorFor(lvl) : palette(k);
+    });
+    marker.color = nbrs.map(i => cmap[c.values[i]]);
+  } else {
+    marker.color = nbrs.map(i => c.values[i]);
+    marker.colorscale = c.cscale;
+    marker.cmin = c.cmin;
+    marker.cmax = c.cmax;
+    marker.showscale = false;
+  }
+  return [
+    {
+      type: is3d ? 'scatter3d' : 'scattergl',
+      x: nbrs.map(i => coords[i][0]),
+      y: nbrs.map(i => coords[i][1]),
+      ...(is3d ? {z: nbrs.map(i => coords[i][2])} : {}),
+      mode: 'markers',
+      marker,
+      name: `top ${state.K} neighbors`,
+      text: nbrs.map(hoverTextFor),
+      hovertemplate: '%{text}<extra></extra>',
+      customdata: nbrs,
+      showlegend: false,
+    },
+    {
       type: is3d ? 'scatter3d' : 'scattergl',
       x: [coords[sel][0]], y: [coords[sel][1]],
       ...(is3d ? {z: [coords[sel][2]]} : {}),
@@ -1311,26 +1373,8 @@ function buildTraces() {
                line: {width: 2, color: '#000'}, symbol: is3d ? 'diamond' : 'star'},
       name: 'selected',
       hoverinfo: 'skip', showlegend: false,
-    });
-    // neighbors as a distinct outline layer
-    const nbrs = DATA.neighbors[sel].slice(0, state.K);
-    traces.push({
-      type: is3d ? 'scatter3d' : 'scattergl',
-      x: nbrs.map(i => coords[i][0]),
-      y: nbrs.map(i => coords[i][1]),
-      ...(is3d ? {z: nbrs.map(i => coords[i][2])} : {}),
-      mode: 'markers',
-      marker: {size: is3d ? 5 : 9, color: 'rgba(0,0,0,0)',
-               line: {width: 1.5, color: '#a45a1e'}},
-      name: `top ${state.K} neighbors`,
-      text: nbrs.map(hoverTextFor),
-      hovertemplate: '%{text}<extra></extra>',
-      customdata: nbrs,
-      showlegend: false,
-    });
-  }
-
-  return traces;
+    },
+  ];
 }
 
 function _scatterTrace(idx, coords, is3d, opts) {
@@ -1390,10 +1434,71 @@ function buildLayout() {
   };
 }
 
-function redraw() {
+// ---------- rendering ----------
+// Two render paths keep interaction cheap:
+//   * FULL     - view / color mode / filter changes rebuild every trace
+//                (Plotly.react re-uploads all WebGL buffers: ~100-400ms).
+//   * SELECTION - click / K-slider changes only restyle base-trace
+//                opacity (scalar, no geometry re-upload) and swap the two
+//                small spotlight overlay traces. ~10ms instead of ~300ms,
+//                which is what stops the freeze under rapid clicking.
+// Both paths are coalesced through requestAnimationFrame so a burst of
+// events renders once, not once per event.
+const DIM_OPACITY = 0.15;
+let _baseTraceCount = 0;     // traces before the spotlight overlay
+let _spotlightCount = 0;     // 0 or 2
+let _baseOpacities = [];     // per-base-trace resting opacity
+let _pendingRender = 0;      // 0 none, 1 selection-only, 2 full
+let _rafScheduled = false;
+
+function _renderFull() {
   Plotly.react('plot', buildTraces(), buildLayout(), PLOTLY_CONFIG);
   updateColorLegend();
 }
+
+function _renderSelectionOnly() {
+  const gd = document.getElementById('plot');
+  const is3d = state.view === '3d';
+  const coords = is3d ? DATA.coords_3d : DATA.coords_2d;
+  // 1) drop any existing spotlight overlay
+  if (_spotlightCount > 0) {
+    const drop = [];
+    for (let k = 0; k < _spotlightCount; k++) drop.push(_baseTraceCount + k);
+    Plotly.deleteTraces(gd, drop);
+    _spotlightCount = 0;
+  }
+  // 2) dim or restore the base cloud (scalar opacity restyle: cheap)
+  const dimming = state.selection !== null && state.dimOthers;
+  const target = dimming ? _baseOpacities.map(() => DIM_OPACITY)
+                         : _baseOpacities.slice();
+  const idxs = target.map((_, k) => k);
+  Plotly.restyle(gd, {'marker.opacity': target}, idxs);
+  // 3) add the fresh spotlight overlay
+  if (state.selection !== null) {
+    const traces = spotlightTraces(coords, is3d);
+    Plotly.addTraces(gd, traces);
+    _spotlightCount = traces.length;
+  }
+}
+
+function _flushRender() {
+  _rafScheduled = false;
+  const mode = _pendingRender;
+  _pendingRender = 0;
+  if (mode === 2) _renderFull();
+  else if (mode === 1) _renderSelectionOnly();
+}
+
+function _scheduleRender(mode) {
+  _pendingRender = Math.max(_pendingRender, mode);
+  if (!_rafScheduled) {
+    _rafScheduled = true;
+    requestAnimationFrame(_flushRender);
+  }
+}
+
+function redraw() { _scheduleRender(2); }          // full rebuild
+function redrawSelection() { _scheduleRender(1); } // spotlight only
 
 // ---------- selection / inspector ----------
 // Global undo: every user-driven mutation pushes a snapshot of state
@@ -1409,6 +1514,7 @@ function snapshot() {
     selection: state.selection,
     K: state.K,
     dimOthers: state.dimOthers,
+    shapes: state.shapes,
     content: state.content,
     ddMin: state.ddMin,
     ddMax: state.ddMax,
@@ -1431,6 +1537,7 @@ function applySnapshot(s) {
   state.selection = s.selection;
   state.K = s.K;
   state.dimOthers = s.dimOthers;
+  state.shapes = (s.shapes !== undefined) ? s.shapes : true;
   state.content = s.content;
   state.ddMin = s.ddMin;
   state.ddMax = s.ddMax;
@@ -1451,6 +1558,7 @@ function applySnapshot(s) {
     if (el) el[prop] = val;
   };
   setEl('dim-others',     'checked',     state.dimOthers);
+  setEl('shapes-toggle',  'checked',     state.shapes);
   setEl('dd-min',         'value',       state.ddMin);
   setEl('dd-max',         'value',       state.ddMax);
   setEl('dd-min-val',     'textContent', state.ddMin + '%');
@@ -1479,7 +1587,7 @@ function selectIndex(idx) {
   if (typeof stopAutoRotate === 'function') stopAutoRotate();
   updateInspector();
   updateSelectionButtons();
-  redraw();
+  redrawSelection();
 }
 
 function undoLast() {
@@ -1497,7 +1605,7 @@ function clearSelection() {
   document.querySelectorAll('.exhibit').forEach(n => n.classList.remove('active'));
   updateInspector();
   updateSelectionButtons();
-  redraw();
+  redrawSelection();
 }
 
 function updateSelectionButtons() {
@@ -1572,7 +1680,7 @@ function updateInspector() {
   slider.addEventListener('input', (e) => {
     state.K = parseInt(e.target.value, 10);
     document.getElementById('k-value').textContent = state.K;
-    redraw();
+    redrawSelection();
   });
   // Wire the "Neighborhood report" popout button.
   const rbtn = document.getElementById('report-btn');
@@ -1760,6 +1868,13 @@ document.querySelectorAll('input[name=color]').forEach(el => {
 document.getElementById('dim-others').addEventListener('change', (e) => {
   pushHistory();
   state.dimOthers = e.target.checked;
+  redrawSelection();
+});
+
+// marker-shapes toggle (second visual variable on/off)
+document.getElementById('shapes-toggle').addEventListener('change', (e) => {
+  pushHistory();
+  state.shapes = e.target.checked;
   redraw();
 });
 document.getElementById('undo-selection').addEventListener('click', undoLast);
@@ -1881,7 +1996,8 @@ const AUTOROTATE_RADIUS = 2.2;
 const AUTOROTATE_Z = 0.9;
 let _lastRotateRelayout = 0;
 function autoRotateFrame(ts) {
-  if (autoRotate && state.view === '3d' && ts - _lastRotateRelayout > 30) {
+  if (!autoRotate) return;   // stops the rAF loop for good, not just the motion
+  if (state.view === '3d' && ts - _lastRotateRelayout > 30) {
     autoRotateT += 0.006;   // slow drift
     Plotly.relayout('plot', {
       'scene.camera.eye.x': AUTOROTATE_RADIUS * Math.cos(autoRotateT),
@@ -2035,11 +2151,51 @@ nav.sue-nav .sep { color: var(--muted); }
 """
 
 
+def _industry_pages() -> List[tuple]:
+    """(display_name, href) pairs for every ingested industry.
+
+    The flagship viewer covers the Semiconductor Equipment corpus; any
+    industry ingested via scripts/ingest_industry.py + plot_industry.py
+    contributes a first-look page under docs/industries/.
+    """
+    pages = [("Semiconductor Equipment", "semantic_universe_explorer.html")]
+    ind_dir = ROOT / "data" / "industries"
+    if ind_dir.exists():
+        for src in sorted(ind_dir.glob("*_sources.json")):
+            slug = src.name[: -len("_sources.json")]
+            if not (DOCS / "industries" / f"{slug}_3d.html").exists():
+                continue
+            try:
+                name = json.loads(src.read_text(encoding="utf-8"))["industry"]
+            except Exception:
+                name = slug.replace("_", " ").title()
+            pages.append((name, f"industries/{slug}_3d.html"))
+    return pages
+
+
+def _industry_dropdown(current_href: str = "semantic_universe_explorer.html") -> str:
+    """A <select> that jumps between per-industry viewer pages."""
+    pages = _industry_pages()
+    if len(pages) < 2:
+        return ""
+    opts = []
+    for name, href in pages:
+        sel = " selected" if href == current_href else ""
+        opts.append(f'<option value="{escape(href)}"{sel}>{escape(name)}</option>')
+    return (
+        '<span class="sep">\u00b7</span> '
+        '<label style="display:inline-flex;gap:6px;align-items:center;">Industry '
+        f'<select onchange="if(this.value)window.location.href=this.value">'
+        + "".join(opts) + "</select></label>"
+    )
+
+
 def _nav_bar(current: str = "") -> str:
     """Top-of-page navigation linking the three SUE pages together.
 
     `current` is one of "viewer", "walkthru", "math" and controls which
-    link is styled as the active page.
+    link is styled as the active page. On the viewer page the bar also
+    carries the industry dropdown.
     """
     items = [
         ("viewer",   "Interactive viewer",  "semantic_universe_explorer.html"),
@@ -2052,6 +2208,8 @@ def _nav_bar(current: str = "") -> str:
             parts.append('<span class="sep">\u00b7</span>')
         cls = ' class="current"' if key == current else ""
         parts.append(f'<a{cls} href="{href}">{escape(label)}</a>')
+    if current == "viewer":
+        parts.append(_industry_dropdown())
     return '<nav class="sue-nav">' + " ".join(parts) + '</nav>'
 
 
@@ -2488,17 +2646,11 @@ def _render_readme(companies: List[str]) -> str:
 
 ![SUE viewer demo \u2014 rotating 3D projection of 3,685 sustainability-report passages across five semiconductor-equipment firms](docs/animated_gif.gif)
 
-**Reachable pages**
+**Links**
 
-- **[Interactive viewer]({live_viewer})** \u2014 the 3-D / 2-D plot with
-  every chunk clickable
-- **[Walk-through]({walkthru_html})** \u2014 what the colour modes mean
-  and where each firm sits along the prose\u2013tabular axis
-- **[Math & statistics]({math_html})** \u2014 LDA, GMM, t-SNE, UMAP with
-  every variable defined
-
-> If you are reading this on GitHub, the **[full walk-through page]({walkthru_html})**
-> renders the math and figures that Markdown cannot.
+- **[Interactive viewer]({live_viewer})** 
+- **[Walk-through]({walkthru_html})** 
+- **[Math & statistics]({math_html})** 
 
 ---
 
