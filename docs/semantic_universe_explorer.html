@@ -21,8 +21,8 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--bg);
-               color: var(--text); font-family: -apple-system, "Segoe UI",
-               Roboto, "Helvetica Neue", Arial, sans-serif;
+               color: var(--text);
+               font-family: Georgia, 'Times New Roman', serif;
                font-size: 14px; line-height: 1.45; }
 
   /* ---------- learning cards (guided intro overlay) ---------- */
@@ -51,14 +51,13 @@
     display: inline-block; background: var(--learn-soft); color: #fff;
     font-size: 11px; font-weight: 700; letter-spacing: .08em;
     padding: 2px 9px; border-radius: 999px; vertical-align: middle;
-    margin-right: 8px; font-family: -apple-system, "Segoe UI", sans-serif;
+    margin-right: 8px;
   }
   .learn-card p { font-size: 14.5px; line-height: 1.62; margin: 9px 0; }
   .learn-card a { color: var(--accent2); }
   .learn-card .learn-foot {
     display: flex; align-items: center; gap: 10px; margin-top: 16px;
     border-top: 1px solid var(--border); padding-top: 12px;
-    font-family: -apple-system, "Segoe UI", sans-serif;
   }
   .learn-dots { display: flex; gap: 6px; margin-right: auto; }
   .learn-dots span { width: 8px; height: 8px; border-radius: 50%;
@@ -911,6 +910,7 @@ function buildLayout() {
     autosize: true, height: 640,
     margin: {l: 0, r: 0, t: 30, b: 0},
     hovermode: 'closest',
+    font: {family: "Georgia, 'Times New Roman', serif"},
     legend: {itemsizing: 'constant', font: {size: 10}, y: 0.98},
     title: {text: '', font: {size: 12}},
     uirevision: cc.kind + (state.reproj ? '-sub' : ''),  // keep camera per lens
@@ -1269,12 +1269,12 @@ function openNeighborhoodReport(centerIdx, K) {
   ).join('\n');
 
   const css = `
-    :root { --bg:#f7f7f8; --panel:#fff; --border:#d9d9de; --text:#1e1e22;
-            --muted:#55575c; --accent:#a45a1e; --accent2:#4a6a8a;
+    :root { --bg:#faf7f2; --panel:#fffdf9; --border:#e4ddd2; --text:#2b2b33;
+            --muted:#6b6b76; --accent:#a45a1e; --accent2:#4a6a8a;
             --highlight:#fff5e0; }
     * { box-sizing: border-box; }
     body { margin:0; background:var(--bg); color:var(--text);
-           font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+           font-family:Georgia,'Times New Roman',serif;
            font-size:15px; line-height:1.55; }
     .wrap { max-width: 860px; margin: 0 auto; padding: 24px 24px 60px; }
     h1 { font-size: 22px; margin: 6px 0 2px; }
@@ -1829,6 +1829,19 @@ const LEARN_CARDS = [
       semantic similarity, independent of authorship.</p>`,
   },
   {
+    title: 'Why the viewer?',
+    body: `
+      <p>Reading a dozen reports of a hundred pages each, side by side,
+      does not scale. The viewer supports the comparisons directly:
+      isolate one disclosure category, select a passage, and inspect its
+      nearest neighbors across every competitor at once:</p>
+      <svg class="proj-demo" id="tour-demo" width="480" height="230"
+           viewBox="0 0 480 230"></svg>
+      <p>The same machinery underlies what follows: per-category
+      comparisons across an industry, and — as further report years are
+      ingested — how each firm’s disclosure moves over time.</p>`,
+  },
+  {
     title: '<span class="new-pill">NEW</span> t-SNE and UMAP projections',
     body: `
       <p>The corpus is embedded in ℝ<sup>384</sup>; any display is a
@@ -1902,7 +1915,86 @@ function renderLearnCard() {
   if (document.getElementById('shepard-demo')) startShepardDemo();
   if (document.getElementById('gir-demo')) startGirDemo();
   if (document.getElementById('nbr-demo')) startNbrDemo();
+  if (document.getElementById('tour-demo')) startTourDemo();
   learnCard.focus();
+}
+
+// card 2: a stylized tour of the workflow - the corpus, a category
+// isolated, a passage selected, its neighbors spotlit, the passage read.
+function startTourDemo() {
+  const svg = document.getElementById('tour-demo');
+  // fixed pseudo-random scatter; category 1 (water-blue) is the story
+  let seed = 41;
+  const rand = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const CAT_COLORS = ['#8ca252', '#17becf', '#c47b3d'];
+  const PTS = [];
+  for (let i = 0; i < 42; i++) {
+    const cat = i % 3;
+    const cx = [140, 250, 350][cat] + (rand() - 0.5) * 150;
+    const cy = 105 + (rand() - 0.5) * 130;
+    PTS.push([cx, cy, cat]);
+  }
+  const SELi = PTS.findIndex(p => p[2] === 1 && p[0] > 220 && p[0] < 285);
+  const NBRS = PTS.map((p, i) => [Math.hypot(p[0]-PTS[SELi][0], p[1]-PTS[SELi][1]), i])
+    .filter(d => d[1] !== SELi && PTS[d[1]][2] === 1)
+    .sort((a, b) => a[0] - b[0]).slice(0, 4).map(d => d[1]);
+  const PHASES = ['the corpus — three categories of disclosure',
+                  'isolate one category',
+                  'select a passage',
+                  'its nearest neighbors, across all companies',
+                  'read the passage; every point carries its source'];
+  svg.innerHTML = `<g id="td-pts"></g><g id="td-extra"></g>
+    <text id="td-cap" x="240" y="222" font-size="11.5" text-anchor="middle"
+      fill="#6b6b76"></text>`;
+  const ptsG = svg.querySelector('#td-pts');
+  const extra = svg.querySelector('#td-extra');
+  const cap = svg.querySelector('#td-cap');
+  function frame(ts) {
+    if (!document.getElementById('tour-demo')) return;
+    const phase = Math.floor(ts / 1800) % PHASES.length;
+    let html = '', ex = '';
+    for (let i = 0; i < PTS.length; i++) {
+      const [x, y, cat] = PTS[i];
+      const dimmed = phase >= 1 && cat !== 1;
+      html += `<circle cx="${x}" cy="${y}" r="4.5"
+        fill="${CAT_COLORS[cat]}" opacity="${dimmed ? 0.12 : 0.8}"/>`;
+    }
+    if (phase >= 2) {
+      const [sx, sy] = PTS[SELi];
+      ex += `<circle cx="${sx}" cy="${sy}" r="8" fill="none"
+              stroke="#5b4b8a" stroke-width="2"/>
+             <circle cx="${sx}" cy="${sy}" r="4.5" fill="#5b4b8a"/>`;
+    }
+    if (phase >= 3) {
+      const [sx, sy] = PTS[SELi];
+      for (const j of NBRS) {
+        const [nx, ny] = PTS[j];
+        ex += `<line x1="${sx}" y1="${sy}" x2="${nx}" y2="${ny}"
+                stroke="#a45a1e" stroke-width="1" stroke-dasharray="3 3"/>
+               <circle cx="${nx}" cy="${ny}" r="7" fill="none"
+                stroke="#a45a1e" stroke-width="1.6"/>`;
+      }
+    }
+    if (phase >= 4) {
+      // a small reading pane sketch beside the selection
+      const [sx, sy] = PTS[SELi];
+      const px = Math.min(sx + 24, 330), py = Math.max(sy - 46, 12);
+      ex += `<rect x="${px}" y="${py}" width="130" height="64" rx="7"
+              fill="#fffdf9" stroke="#5b4b8a" stroke-width="1.1"/>
+             <rect x="${px + 10}" y="${py + 11}" width="72" height="5" rx="2.5"
+              fill="#17becf"/>`;
+      for (let l = 0; l < 3; l++) {
+        ex += `<rect x="${px + 10}" y="${py + 24 + l * 11}"
+                width="${110 - l * 16}" height="4.5" rx="2"
+                fill="#ddd3c2"/>`;
+      }
+    }
+    ptsG.innerHTML = html;
+    extra.innerHTML = ex;
+    cap.textContent = PHASES[phase];
+    _projDemoRAF = requestAnimationFrame(frame);
+  }
+  _projDemoRAF = requestAnimationFrame(frame);
 }
 
 // card 3: the elevation-map demonstration. S and N are true neighbors
@@ -2180,10 +2272,14 @@ document.addEventListener('keydown', (e) => {
   }
 });
 document.getElementById('learn-reopen').addEventListener('click', openLearn);
-// auto-open on first visit only
+// Auto-open whenever the reader arrives from outside the site (an
+// external link, a shared URL, a fresh tab). Navigation between SUE's
+// own pages does not re-trigger it; the Guide button reopens any time.
 try {
-  if (!localStorage.getItem('sue_learn_seen')) openLearn();
-} catch (e) {}
+  const sameSite = document.referrer
+    && new URL(document.referrer).origin === location.origin;
+  if (!sameSite) openLearn();
+} catch (e) { openLearn(); }
 
 // first faithfulness score, computed once the page has settled
 setTimeout(scheduleFaithfulness, 800);
