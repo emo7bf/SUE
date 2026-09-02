@@ -2632,7 +2632,7 @@ function startTourDemo() {
   const NBRS = PTS.map((p, i) => [Math.hypot(p[0]-PTS[SELi][0], p[1]-PTS[SELi][1]), i])
     .filter(d => d[1] !== SELi && PTS[d[1]][2] === 1)
     .sort((a, b) => a[0] - b[0]).slice(0, 4).map(d => d[1]);
-  const PHASES = ['the corpus \u2014 three categories of disclosure',
+  const PHASES = ['the corpus \u2014 colored by disclosure category',
                   'isolate one category',
                   'select a passage',
                   'its nearest neighbors, across all companies',
